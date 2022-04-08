@@ -134,6 +134,10 @@ void setup() {
 
 
 void loop() {
+
+  
+  /*
+   * For testing purposes, pause here, and make sure that the gauntlet is putting out the right values. 
   //Captures current positional Data from the Gauntlet
   DataPack();
 
@@ -142,9 +146,29 @@ void loop() {
   RecMesg = ErrorCheck();
 
   //wait for message for new packet
-
+*/
 }
 
+void test(){
+  // display Euler angles in degrees
+    mpu.dmpGetQuaternion(&q, fifoBuffer);
+    mpu0.dmpGetQuaternion(&q0, fifoBuffer0);
+    mpu.dmpGetEuler(euler, &q);
+    mpu0.dmpGetEuler(euler, &q);
+    mpu.dmpGetGravity(&gravity, &q);
+    mpu0.dmpGetGravity(&gravity0, &q0);
+    mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+    mpu0.dmpGetYawPitchRoll(ypr0, &q0, &gravity0);
+    
+      Serial.print(ypr[0] * 180 / M_PI); Serial.print("||");
+      Serial.print(ypr[1] * 180 / M_PI); Serial.print("||");
+      Serial.print(ypr[2] * 180 / M_PI); Serial.print("||");
+      
+      Serial.print(ypr0[0] * 180 / M_PI); Serial.print("||");
+      Serial.print(ypr0[1] * 180 / M_PI); Serial.print("||");
+      Serial.print(ypr0[2] * 180 / M_PI); Serial.print("||");
+    
+}
 void VarBut() {
   VarButton = false;
   while (VarButton = false) {
@@ -182,7 +206,7 @@ void getYPR() {
   mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
   mpu0.dmpGetYawPitchRoll(ypr0, &q0, &gravity0);
 
-// Assign pertinet values to the pertnet variables. 
+// Assign pertinet values to the pertnet variables then assign to the array containter. 
 
   
 }
