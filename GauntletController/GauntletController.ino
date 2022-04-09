@@ -1,13 +1,7 @@
 
 /*
-   Name
-   group
-   code
-   messages
-   etc
-
-   version history
-
+4/9/22 - Gyroscopes are accurately reading and printing to serial seperately with the test codes. Next change is to impliment correct angle polarity, and packaging to the packet array.
+Will also start radio tranciever communication.
 
 */
 
