@@ -1,3 +1,4 @@
+
 /*
    Name
    group
@@ -32,6 +33,8 @@ MPU6050 mpu0(0x69);
 #define INTERRUPT_PIN_1 2// use pin 2 for MPU
 #define INTERRUPT_PIN_2 3// use pin 3 for MPU0
 #define LED_PIN 13
+
+#define OUTPUT_READABLE_YAWPITCHROLL
 
 //Radio Transciever
 #define CE_PIN   9
@@ -97,6 +100,9 @@ void dmpDataReady() {
 
 
 void setup() {
+ ComputerTestSteup();
+  
+  /*
   // join I2C bus (I2Cdev library doesn't do this automatically)
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
   Wire.begin();
@@ -129,15 +135,122 @@ void setup() {
   GauntInint();
   ARMConEst();
 
-  GauntHome();
+ GauntHome();
+*/
+
+
+}
+void ComputerTestSteup(){
+    // join I2C bus (I2Cdev library doesn't do this automatically)
+#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+  Wire.begin();
+  Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having compilation difficulties
+#elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
+  Fastwire::setup(400, true);
+#endif
+
+  // initialize serial communication
+  // (115200 chosen because it is required for Teapot Demo output, but it's
+  // really up to you depending on your project)
+  Serial.begin(115200);
+  while (!Serial); // wait for Leonardo enumeration, others continue immediately
+
+  // NOTE: 8MHz or slower host processors, like the Teensy @ 3.3V or Arduino
+  // Pro Mini running at 3.3V, cannot handle this baud rate reliably due to
+  // the baud timing being too misaligned with processor ticks. You must use
+  // 38400 or slower in these cases, or use some kind of external separate
+  // crystal solution for the UART timer.
+
+  // initialize device
+  Serial.println(F("Initializing I2C devices..."));
+  mpu.initialize();
+  pinMode(INTERRUPT_PIN_1, INPUT);
+
+  // verify connection
+  Serial.println(F("Testing device connections..."));
+  Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
+
+  // wait for ready
+  Serial.println(F("\nSend any character to begin DMP programming and demo: "));
+  while (Serial.available() && Serial.read()); // empty buffer
+  while (!Serial.available());                 // wait for data
+  while (Serial.available() && Serial.read()); // empty buffer again
+
+  // load and configure the DMP
+  Serial.println(F("Initializing DMP..."));
+  devStatus = mpu.dmpInitialize();
+
+  // supply your own gyro offsets here, scaled for min sensitivity
+  mpu.setXGyroOffset(51);
+  mpu.setYGyroOffset(8);
+  mpu.setZGyroOffset(21);
+  mpu.setXAccelOffset(1150);
+  mpu.setYAccelOffset(-50);
+  mpu.setZAccelOffset(1060);
+  // make sure it worked (returns 0 if so)
+  if (devStatus == 0) {
+    // Calibration Time: generate offsets and calibrate our MPU6050
+    mpu.CalibrateAccel(6);
+    mpu.CalibrateGyro(6);
+    Serial.println();
+    mpu.PrintActiveOffsets();
+    // turn on the DMP, now that it's ready
+    Serial.println(F("Enabling DMP..."));
+    mpu.setDMPEnabled(true);
+
+    // enable Arduino interrupt detection
+    Serial.print(F("Enabling interrupt detection (Arduino external interrupt "));
+    Serial.print(digitalPinToInterrupt(INTERRUPT_PIN_1));
+    Serial.println(F(")..."));
+    attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN_1), dmpDataReady, RISING);
+    mpuIntStatus = mpu.getIntStatus();
+
+    // set our DMP Ready flag so the main loop() function knows it's okay to use it
+    Serial.println(F("DMP ready! Waiting for first interrupt..."));
+    dmpReady = true;
+
+    // get expected DMP packet size for later comparison
+    packetSize = mpu.dmpGetFIFOPacketSize();
+  } else {
+    // ERROR!
+    // 1 = initial memory load failed
+    // 2 = DMP configuration updates failed
+    // (if it's going to break, usually the code will be 1)
+    Serial.print(F("DMP Initialization failed (code "));
+    Serial.print(devStatus);
+    Serial.println(F(")"));
+  }
+
+  // configure LED for output
+  pinMode(LED_PIN, OUTPUT);
 }
 
+void testMPU(){
+ // if programming failed, don't try to do anything
+  if (!dmpReady) return;
+  // read a packet from FIFO
+  if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer)) { // Get the Latest packet 
+    
+  }
+#ifdef OUTPUT_READABLE_YAWPITCHROLL
+    // display Euler angles in degrees
+    mpu.dmpGetQuaternion(&q, fifoBuffer);
+    mpu.dmpGetGravity(&gravity, &q);
+    mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+    Serial.print("ypr\t");
+    Serial.print(ypr[0] * 180 / M_PI);
+    Serial.print("\t");
+    Serial.print(ypr[1] * 180 / M_PI);
+    Serial.print("\t");
+    Serial.print(ypr[2] * 180 / M_PI);
+    Serial.println();
+}
+}
 
 void loop() {
+testMPU();
 
-  
   /*
-   * For testing purposes, pause here, and make sure that the gauntlet is putting out the right values. 
   //Captures current positional Data from the Gauntlet
   DataPack();
 
@@ -149,26 +262,6 @@ void loop() {
 */
 }
 
-void test(){
-  // display Euler angles in degrees
-    mpu.dmpGetQuaternion(&q, fifoBuffer);
-    mpu0.dmpGetQuaternion(&q0, fifoBuffer0);
-    mpu.dmpGetEuler(euler, &q);
-    mpu0.dmpGetEuler(euler, &q);
-    mpu.dmpGetGravity(&gravity, &q);
-    mpu0.dmpGetGravity(&gravity0, &q0);
-    mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-    mpu0.dmpGetYawPitchRoll(ypr0, &q0, &gravity0);
-    
-      Serial.print(ypr[0] * 180 / M_PI); Serial.print("||");
-      Serial.print(ypr[1] * 180 / M_PI); Serial.print("||");
-      Serial.print(ypr[2] * 180 / M_PI); Serial.print("||");
-      
-      Serial.print(ypr0[0] * 180 / M_PI); Serial.print("||");
-      Serial.print(ypr0[1] * 180 / M_PI); Serial.print("||");
-      Serial.print(ypr0[2] * 180 / M_PI); Serial.print("||");
-    
-}
 void VarBut() {
   VarButton = false;
   while (VarButton = false) {
@@ -184,7 +277,7 @@ void GauntHome() {
   VarBut();
   //capture the current roll pitch and yaw data from the arm as the home position and use it in calculations
   mpu.dmpGetQuaternion(&q, fifoBuffer);
-  mpu0.dmpGetQuaternion(&q0, fifoBuffer0);
+  mpu0.dmpGetQuaternion(&q0, fifoBuffer);
   mpu.dmpGetEuler(euler, &q);
   mpu0.dmpGetEuler(euler, &q);
   mpu.dmpGetGravity(&gravity, &q);
@@ -198,7 +291,7 @@ void GauntHome() {
 void getYPR() {
   int ShoulderX, ShoulderZ, ElbowZ, ForearmZ, Thumb, Pointer, Middle, Ring, Pinky;
   mpu.dmpGetQuaternion(&q, fifoBuffer);
-  mpu0.dmpGetQuaternion(&q0, fifoBuffer0);
+  mpu0.dmpGetQuaternion(&q0, fifoBuffer);
   mpu.dmpGetEuler(euler, &q);
   mpu0.dmpGetEuler(euler, &q);
   mpu.dmpGetGravity(&gravity, &q);
@@ -206,7 +299,7 @@ void getYPR() {
   mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
   mpu0.dmpGetYawPitchRoll(ypr0, &q0, &gravity0);
 
-// Assign pertinet values to the pertnet variables then assign to the array containter. 
+// Assign pertinet values to the pertnet variables. 
 
   
 }
