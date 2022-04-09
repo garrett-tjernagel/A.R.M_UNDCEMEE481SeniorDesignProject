@@ -57,7 +57,8 @@ uint8_t devStatus;      // return status after each device operation (0 = succes
 uint8_t devStatus0;
 uint16_t packetSize;    // expected DMP packet size (default is 42 bytes)
 uint16_t packetSize0;
-uint8_t fifoBuffer[64]; // FIFO storage buffer
+uint8_t fifoBuffer[32]; // FIFO storage buffer
+uint8_t fifoBuffer0[32];
 uint16_t fifoCount;     // count of all bytes currently in FIFO
 
 // Orientation and Motion Varaibles
@@ -100,48 +101,48 @@ void dmpDataReady() {
 
 
 void setup() {
- ComputerTestSteup();
-  
+  ComputerTestSteup();
+
   /*
-  // join I2C bus (I2Cdev library doesn't do this automatically)
-#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-  Wire.begin();
-  Wire.setClock(400000); // 400kHz I2C clock.For Arduino UNO and other 400kHz board clocks
-#elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
-  Fastwire::setup(400, true); //guessing that this would also tie into the 400kHz of UNOs
-#endif
+    // join I2C bus (I2Cdev library doesn't do this automatically)
+    #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+    Wire.begin();
+    Wire.setClock(400000); // 400kHz I2C clock.For Arduino UNO and other 400kHz board clocks
+    #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
+    Fastwire::setup(400, true); //guessing that this would also tie into the 400kHz of UNOs
+    #endif
 
-  // Initialize Serial
-  Serial.begin(115200);
+    // Initialize Serial
+    Serial.begin(115200);
 
-  // Initialize Gyroscopes
-  Serial.println(F("Initializing I2C devices..."));
-  mpu.initialize();
-  mpu0.initialize();
-  pinMode(INTERRUPT_PIN_1, INPUT);
-  pinMode(INTERRUPT_PIN_2, INPUT);
-  // Initialize Gyroscopes
-  Serial.println(F("Initializing I2C devices..."));
-  mpu.initialize();
-  mpu0.initialize();
-  pinMode(INTERRUPT_PIN_1, INPUT);
-  pinMode(INTERRUPT_PIN_2, INPUT);
+    // Initialize Gyroscopes
+    Serial.println(F("Initializing I2C devices..."));
+    mpu.initialize();
+    mpu0.initialize();
+    pinMode(INTERRUPT_PIN_1, INPUT);
+    pinMode(INTERRUPT_PIN_2, INPUT);
+    // Initialize Gyroscopes
+    Serial.println(F("Initializing I2C devices..."));
+    mpu.initialize();
+    mpu0.initialize();
+    pinMode(INTERRUPT_PIN_1, INPUT);
+    pinMode(INTERRUPT_PIN_2, INPUT);
 
-  // verify connection
-  Serial.println(F("Testing device connections..."));
-  Serial.println(mpu.testConnection() ? F("Gyro connection successful") : F("Gyro connection failed"));
-  Serial.println(mpu0.testConnection() ? F("Gyro-0 connection successful") : F("Gyro-0 connection failed"));
+    // verify connection
+    Serial.println(F("Testing device connections..."));
+    Serial.println(mpu.testConnection() ? F("Gyro connection successful") : F("Gyro connection failed"));
+    Serial.println(mpu0.testConnection() ? F("Gyro-0 connection successful") : F("Gyro-0 connection failed"));
 
-  GauntInint();
-  ARMConEst();
+    GauntInint();
+    ARMConEst();
 
- GauntHome();
-*/
+    GauntHome();
+  */
 
 
 }
-void ComputerTestSteup(){
-    // join I2C bus (I2Cdev library doesn't do this automatically)
+void ComputerTestSteup() {
+  // join I2C bus (I2Cdev library doesn't do this automatically)
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
   Wire.begin();
   Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having compilation difficulties
@@ -164,11 +165,14 @@ void ComputerTestSteup(){
   // initialize device
   Serial.println(F("Initializing I2C devices..."));
   mpu.initialize();
+  mpu0.initialize();
   pinMode(INTERRUPT_PIN_1, INPUT);
+  pinMode(INTERRUPT_PIN_2, INPUT);
 
   // verify connection
   Serial.println(F("Testing device connections..."));
   Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
+  Serial.println(mpu0.testConnection() ? F("MPU6050-2 connection successful") : F("MPU6050-2 connection failed"));
 
   // wait for ready
   Serial.println(F("\nSend any character to begin DMP programming and demo: "));
@@ -179,6 +183,7 @@ void ComputerTestSteup(){
   // load and configure the DMP
   Serial.println(F("Initializing DMP..."));
   devStatus = mpu.dmpInitialize();
+  devStatus0 = mpu0.dmpInitialize();
 
   // supply your own gyro offsets here, scaled for min sensitivity
   mpu.setXGyroOffset(51);
@@ -187,30 +192,47 @@ void ComputerTestSteup(){
   mpu.setXAccelOffset(1150);
   mpu.setYAccelOffset(-50);
   mpu.setZAccelOffset(1060);
+
+  mpu0.setXGyroOffset(51);
+  mpu0.setYGyroOffset(8);
+  mpu0.setZGyroOffset(21);
+  mpu0.setXAccelOffset(1150);
+  mpu0.setYAccelOffset(-50);
+  mpu0.setZAccelOffset(1060);
   // make sure it worked (returns 0 if so)
-  if (devStatus == 0) {
+  if (devStatus == 0 and devStatus0 == 0) {
     // Calibration Time: generate offsets and calibrate our MPU6050
     mpu.CalibrateAccel(6);
     mpu.CalibrateGyro(6);
+
+    mpu0.CalibrateAccel(6);
+    mpu0.CalibrateGyro(6);
     Serial.println();
     mpu.PrintActiveOffsets();
+    mpu0.PrintActiveOffsets();
     // turn on the DMP, now that it's ready
     Serial.println(F("Enabling DMP..."));
     mpu.setDMPEnabled(true);
+    mpu0.setDMPEnabled(true);
 
     // enable Arduino interrupt detection
     Serial.print(F("Enabling interrupt detection (Arduino external interrupt "));
     Serial.print(digitalPinToInterrupt(INTERRUPT_PIN_1));
+    Serial.print(digitalPinToInterrupt(INTERRUPT_PIN_2));
     Serial.println(F(")..."));
     attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN_1), dmpDataReady, RISING);
+    attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN_2), dmpDataReady, RISING);
     mpuIntStatus = mpu.getIntStatus();
+    mpu0IntStatus = mpu0.getIntStatus();
 
     // set our DMP Ready flag so the main loop() function knows it's okay to use it
     Serial.println(F("DMP ready! Waiting for first interrupt..."));
     dmpReady = true;
+    dmp0Ready = true;
 
     // get expected DMP packet size for later comparison
     packetSize = mpu.dmpGetFIFOPacketSize();
+    packetSize0 = mpu0.dmpGetFIFOPacketSize();
   } else {
     // ERROR!
     // 1 = initial memory load failed
@@ -218,6 +240,7 @@ void ComputerTestSteup(){
     // (if it's going to break, usually the code will be 1)
     Serial.print(F("DMP Initialization failed (code "));
     Serial.print(devStatus);
+    Serial.print(devStatus0);
     Serial.println(F(")"));
   }
 
@@ -225,41 +248,55 @@ void ComputerTestSteup(){
   pinMode(LED_PIN, OUTPUT);
 }
 
-void testMPU(){
- // if programming failed, don't try to do anything
-  if (!dmpReady) return;
+void testMPU() {
+  // if programming failed, don't try to do anything
+  if (!dmpReady and !dmp0Ready) return;
   // read a packet from FIFO
-  if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer)) { // Get the Latest packet 
-    
-  }
+  if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer) and mpu0.dmpGetCurrentFIFOPacket(fifoBuffer0)) { // Get the Latest packet
+
 #ifdef OUTPUT_READABLE_YAWPITCHROLL
     // display Euler angles in degrees
     mpu.dmpGetQuaternion(&q, fifoBuffer);
     mpu.dmpGetGravity(&gravity, &q);
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-    Serial.print("ypr\t");
+
+    mpu0.dmpGetQuaternion(&q0, fifoBuffer0);
+    mpu0.dmpGetGravity(&gravity0, &q0);
+    mpu0.dmpGetYawPitchRoll(ypr0, &q0, &gravity0);
+
+    Serial.print("Shoulder\t");
     Serial.print(ypr[0] * 180 / M_PI);
     Serial.print("\t");
     Serial.print(ypr[1] * 180 / M_PI);
     Serial.print("\t");
     Serial.print(ypr[2] * 180 / M_PI);
+    Serial.print("\t");
+
+    Serial.print("Wrist\t");
+    Serial.print(ypr0[0] * 180 / M_PI);
+    Serial.print("\t");
+    Serial.print(ypr0[1] * 180 / M_PI);
+    Serial.print("\t");
+    Serial.print(ypr0[2] * 180 / M_PI);
     Serial.println();
+#endif
+  }
 }
-}
+
 
 void loop() {
-testMPU();
+  testMPU();
 
   /*
-  //Captures current positional Data from the Gauntlet
-  DataPack();
+    //Captures current positional Data from the Gauntlet
+    DataPack();
 
-  //send Package to ARM
+    //send Package to ARM
 
-  RecMesg = ErrorCheck();
+    RecMesg = ErrorCheck();
 
-  //wait for message for new packet
-*/
+    //wait for message for new packet
+  */
 }
 
 void VarBut() {
@@ -277,7 +314,7 @@ void GauntHome() {
   VarBut();
   //capture the current roll pitch and yaw data from the arm as the home position and use it in calculations
   mpu.dmpGetQuaternion(&q, fifoBuffer);
-  mpu0.dmpGetQuaternion(&q0, fifoBuffer);
+  mpu0.dmpGetQuaternion(&q0, fifoBuffer0);
   mpu.dmpGetEuler(euler, &q);
   mpu0.dmpGetEuler(euler, &q);
   mpu.dmpGetGravity(&gravity, &q);
@@ -291,7 +328,7 @@ void GauntHome() {
 void getYPR() {
   int ShoulderX, ShoulderZ, ElbowZ, ForearmZ, Thumb, Pointer, Middle, Ring, Pinky;
   mpu.dmpGetQuaternion(&q, fifoBuffer);
-  mpu0.dmpGetQuaternion(&q0, fifoBuffer);
+  mpu0.dmpGetQuaternion(&q0, fifoBuffer0);
   mpu.dmpGetEuler(euler, &q);
   mpu0.dmpGetEuler(euler, &q);
   mpu.dmpGetGravity(&gravity, &q);
@@ -299,9 +336,9 @@ void getYPR() {
   mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
   mpu0.dmpGetYawPitchRoll(ypr0, &q0, &gravity0);
 
-// Assign pertinet values to the pertnet variables. 
+  // Assign pertinet values to the pertnet variables.
 
-  
+
 }
 
 void ARMConEst() {
