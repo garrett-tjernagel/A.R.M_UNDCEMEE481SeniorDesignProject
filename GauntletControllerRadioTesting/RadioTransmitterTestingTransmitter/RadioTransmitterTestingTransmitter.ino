@@ -47,7 +47,7 @@ void loop() {
 //====================
 
 void send() {
-
+dataToSend=Serial.read();
     bool rslt;
     rslt = radio.write( &dataToSend, sizeof(dataToSend) );
         // Always use sizeof() as it gives the size as the number of bytes.
