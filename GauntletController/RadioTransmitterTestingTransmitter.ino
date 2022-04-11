@@ -5,8 +5,8 @@
 #include <RF24.h>
 
 
-#define CE_PIN   9
-#define CSN_PIN 10
+#define CE_PIN   7
+#define CSN_PIN 8
 
 const byte slaveAddress[5] = {'R','x','A','A','A'};
 
