@@ -1,7 +1,7 @@
 
 /*
-4/9/22 - Gyroscopes are accurately reading and printing to serial seperately with the test codes. Next change is to impliment correct angle polarity, and packaging to the packet array.
-Will also start radio tranciever communication.
+  4/9/22 - Gyroscopes are accurately reading and printing to serial seperately with the test functions. Next change is to impliment correct angle polarity, and packaging to the packet array.
+  Will also start radio tranciever communication. After successful implimentation, will be transferring the test functions to the correct final functions.
 
 */
 
@@ -31,14 +31,18 @@ MPU6050 mpu0(0x69);
 #define OUTPUT_READABLE_YAWPITCHROLL
 
 //Radio Transciever
-#define CE_PIN   9
-#define CSN_PIN 10
+#define CE_PIN   7
+#define CSN_PIN 8
 
 //Radio Address
-const byte slaveAddress[5] = {'M', 'O', 'N', 'K', 'E'};
+const byte slaveAddress[5] = {'R','x','A','A','A'};
 
 //Creating  a radio object
 RF24 radio(CE_PIN, CSN_PIN);
+
+unsigned long currentMillis;
+unsigned long prevMillis;
+unsigned long txIntervalMillis = 1000; // send once per second
 
 bool blinkState = false;
 
@@ -148,6 +152,13 @@ void ComputerTestSteup() {
   // (115200 chosen because it is required for Teapot Demo output, but it's
   // really up to you depending on your project)
   Serial.begin(115200);
+
+  Serial.println("Radio Starting");
+  radio.begin();
+  radio.setDataRate( RF24_250KBPS );
+  radio.setRetries(3, 5); // delay, count
+  radio.openWritingPipe(slaveAddress);
+
   while (!Serial); // wait for Leonardo enumeration, others continue immediately
 
   // NOTE: 8MHz or slower host processors, like the Teensy @ 3.3V or Arduino
@@ -279,7 +290,12 @@ void testMPU() {
 
 
 void loop() {
-  testMPU();
+  getYPR();
+  currentMillis = millis();
+  if (currentMillis - prevMillis >= txIntervalMillis) {
+    send();
+    prevMillis = millis();
+  }
 
   /*
     //Captures current positional Data from the Gauntlet
@@ -320,19 +336,38 @@ void GauntHome() {
 }
 
 void getYPR() {
-  int ShoulderX, ShoulderZ, ElbowZ, ForearmZ, Thumb, Pointer, Middle, Ring, Pinky;
-  mpu.dmpGetQuaternion(&q, fifoBuffer);
-  mpu0.dmpGetQuaternion(&q0, fifoBuffer0);
-  mpu.dmpGetEuler(euler, &q);
-  mpu0.dmpGetEuler(euler, &q);
-  mpu.dmpGetGravity(&gravity, &q);
-  mpu0.dmpGetGravity(&gravity0, &q0);
-  mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-  mpu0.dmpGetYawPitchRoll(ypr0, &q0, &gravity0);
+  // if programming failed, don't try to do anything
+  if (!dmpReady and !dmp0Ready) return;
+  // read a packet from FIFO
+  if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer) and mpu0.dmpGetCurrentFIFOPacket(fifoBuffer0)) { // Get the Latest packet
 
-  // Assign pertinet values to the pertnet variables.
+    mpu.dmpGetQuaternion(&q, fifoBuffer);
+    mpu0.dmpGetQuaternion(&q0, fifoBuffer0);
+    mpu.dmpGetEuler(euler, &q);
+    mpu0.dmpGetEuler(euler, &q);
+    mpu.dmpGetGravity(&gravity, &q);
+    mpu0.dmpGetGravity(&gravity0, &q0);
+    mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+    mpu0.dmpGetYawPitchRoll(ypr0, &q0, &gravity0);
 
+    // Assign pertinet values to the pertnet variables.
 
+  }
+}
+
+void send(){
+  bool rslt;
+    rslt = radio.write( &Package[0], sizeof(Package[0]) );
+        // Always use sizeof() as it gives the size as the number of bytes.
+        // For example if Package was an int sizeof() would correctly return 2
+
+    Serial.print("Data Sent ");
+    if (rslt) {
+        Serial.println("  Acknowledge received");
+    }
+    else {
+        Serial.println("  Tx failed");
+    }
 }
 
 void ARMConEst() {
