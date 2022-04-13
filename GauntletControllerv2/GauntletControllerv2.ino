@@ -93,8 +93,8 @@ void setup(void) {
 void loop() {
 
   /* Get new sensor events with the readings */
-  sensors_event_t a, g, temp;
-  mpu1.getEvent(&a, &g, &temp);
+  sensors_event_t a1, g1, temp1;
+  mpu1.getEvent(&a1, &g1, &temp1);
 
   /* Print out the values */
   /*
@@ -107,11 +107,11 @@ void loop() {
   Serial.println(" m/s^2");
 */
   Serial.print("Rotation X: ");
-  Serial.print(g.gyro.x);
+  Serial.print(g1.gyro.x);
   Serial.print(", Y: ");
-  Serial.print(g.gyro.y);
+  Serial.print(g1.gyro.y);
   Serial.print(", Z: ");
-  Serial.print(g.gyro.z);
+  Serial.print(g1.gyro.z);
   Serial.println(" rad/s");
 /*
   Serial.print("Temperature: ");
