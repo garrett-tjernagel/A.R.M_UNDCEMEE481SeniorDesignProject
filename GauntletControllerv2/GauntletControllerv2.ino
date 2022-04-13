@@ -13,13 +13,22 @@ float gwxo1, gwyo1, gwzo1 = 0;
 float gwxn1, gwyn1, gwzn1 = 0;
 unsigned long deltaTime, to, tc = 0;
 float xrc1, xrd1 = 0;
-float xRotOffset=0.040394987;
+float yrc1, yrd1 = 0;
+float zrc1, zrd1 = 0;
 
-
+float xRotOffset=0.04;
+float yRotOffset=0.00;
+float zRotOffset=0.00;
 
 
 
 void setup(void) {
+//Reset Variables
+float gwxo1, gwyo1, gwzo1 = 0;
+float gwxn1, gwyn1, gwzn1 = 0;
+unsigned long deltaTime, to, tc = 0;
+float xrc1, xrd1 = 0;
+  
   Serial.begin(115200);
   while (!Serial)
     delay(10); // will pause Zero, Leonardo, etc until serial console opens
@@ -95,6 +104,8 @@ void setup(void) {
       break;
   }
 
+
+
   Serial.println("");
   delay(100);
 }
@@ -115,27 +126,45 @@ void loop() {
   Serial.print("\t");
 
   gwxn1 = g1.gyro.x;
+  gwyn1 = g1.gyro.y;
+  gwzn1 = g1.gyro.z;
   //Serial.print("\t");
   //Serial.print(gwxo1,10);
   //Serial.print("\t");
   //Serial.print(gwxn1,10);
   //Serial.print("\t");
   float avgXW1 = ((gwxo1 + gwxn1) / 2)+xRotOffset;
+  float avgYW1 = ((gwyo1 + gwyn1) / 2)+yRotOffset;
+  float avgZW1 = ((gwzo1 + gwzn1) / 2)+zRotOffset;
   
-  //Serial.print("Current X Vel (rad/s)");
+  //Serial.print("Current X,Y,Z Vel (rad/s) ");
   Serial.print(avgXW1,10);
   Serial.print("\t");
-
-
- xrd1 = avgXW1 * deltaTime; 
-  xrc1 = xrc1 + xrd1;
-  Serial.print("Current X Pos (rad)");
-  Serial.print(xrc1);
+  Serial.print(avgYW1,10);
   Serial.print("\t");
+  Serial.print(avgZW1,10);
+  Serial.print("\t");
+
+
+ xrd1 = avgXW1 * deltaTime;
+ yrd1 = avgYW1 * deltaTime;
+ zrd1 = avgZW1 * deltaTime; 
+  xrc1 = xrc1 + xrd1;
+  yrc1 = yrc1 + yrd1;
+  zrc1 = zrc1 + zrd1;
+  //Serial.print("Current X,Y,Z Pos (rad)");
+  //Serial.print(xrc1);
+  //Serial.print("\t");
+  //Serial.print(yrc1);
+  //Serial.print("\t");
+  //Serial.print(zrc1);
+  //Serial.print("\t");
 
 
 
 gwxo1 = gwxn1;
+gwyo1 = gwyn1;
+gwzo1 = gwzn1;
   Serial.println();
 }
 
