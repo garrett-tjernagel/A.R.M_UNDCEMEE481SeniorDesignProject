@@ -7,11 +7,13 @@
 Adafruit_MPU6050 mpu1;
 Adafruit_MPU6050 mpu2;
 
+int samplingTime = 1; //Enter time in ms
 
 float gwxo1, gwyo1, gwzo1 = 0;
 float gwxn1, gwyn1, gwzn1 = 0;
-unsigned long deltaTime,to,tc = 0;
+unsigned long deltaTime, to, tc = 0;
 float xrc1, xrd1 = 0;
+float xRotOffset=0.040394987;
 
 
 
@@ -102,17 +104,39 @@ void loop() {
   sensors_event_t a1, g1, temp1;
   mpu1.getEvent(&a1, &g1, &temp1);
 
-//calculate average velocity between time samples
+  //calculate average velocity between time samples
 
-unsigned long Time = millis();
-delay(1);
-unsigned long newTime = millis();
-unsigned long deltaTime = newTime - Time;
-Serial.print(Time);
-Serial.print("\t");
-Serial.println(deltaTime);
+  unsigned long Time = millis();
+  delay(samplingTime);
+  unsigned long newTime = millis();
+  unsigned long deltaTime = newTime - Time;
+  Serial.print("Sampling Time (ms:)");
+  Serial.print(deltaTime);
+  Serial.print("\t");
+
+  gwxn1 = g1.gyro.x;
+  //Serial.print("\t");
+  //Serial.print(gwxo1,10);
+  //Serial.print("\t");
+  //Serial.print(gwxn1,10);
+  //Serial.print("\t");
+  float avgXW1 = ((gwxo1 + gwxn1) / 2)+xRotOffset;
+  
+  //Serial.print("Current X Vel (rad/s)");
+  Serial.print(avgXW1,10);
+  Serial.print("\t");
 
 
+ xrd1 = avgXW1 * deltaTime; 
+  xrc1 = xrc1 + xrd1;
+  Serial.print("Current X Pos (rad)");
+  Serial.print(xrc1);
+  Serial.print("\t");
+
+
+
+gwxo1 = gwxn1;
+  Serial.println();
 }
 
 /* OLD CODE FROM THE SKETCH: REMOVE AT END
