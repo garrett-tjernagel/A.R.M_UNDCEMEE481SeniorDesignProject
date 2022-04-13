@@ -7,9 +7,15 @@
 Adafruit_MPU6050 mpu1;
 Adafruit_MPU6050 mpu2;
 
-long
 
-long t=millis();
+float gwxo1, gwyo1, gwzo1 = 0;
+float gwxn1, gwyn1, gwzn1 = 0;
+unsigned long deltaTime,to,tc = 0;
+float xrc1, xrd1 = 0;
+
+
+
+
 
 void setup(void) {
   Serial.begin(115200);
@@ -25,65 +31,66 @@ void setup(void) {
       delay(10);
     }
   }
-  Serial.println("MPU6050 Found!");
+  Serial.println("MPU6050 Found!\n Enter anything to begin >");
+  while (!Serial.available());
 
   mpu1.setAccelerometerRange(MPU6050_RANGE_8_G);
   Serial.print("Accelerometer range set to: ");
   switch (mpu1.getAccelerometerRange()) {
-  case MPU6050_RANGE_2_G:
-    Serial.println("+-2G");
-    break;
-  case MPU6050_RANGE_4_G:
-    Serial.println("+-4G");
-    break;
-  case MPU6050_RANGE_8_G:
-    Serial.println("+-8G");
-    break;
-  case MPU6050_RANGE_16_G:
-    Serial.println("+-16G");
-    break;
+    case MPU6050_RANGE_2_G:
+      Serial.println("+-2G");
+      break;
+    case MPU6050_RANGE_4_G:
+      Serial.println("+-4G");
+      break;
+    case MPU6050_RANGE_8_G:
+      Serial.println("+-8G");
+      break;
+    case MPU6050_RANGE_16_G:
+      Serial.println("+-16G");
+      break;
   }
   mpu1.setGyroRange(MPU6050_RANGE_500_DEG);
   Serial.print("Gyro range set to: ");
   switch (mpu1.getGyroRange()) {
-  case MPU6050_RANGE_250_DEG:
-    Serial.println("+- 250 deg/s");
-    break;
-  case MPU6050_RANGE_500_DEG:
-    Serial.println("+- 500 deg/s");
-    break;
-  case MPU6050_RANGE_1000_DEG:
-    Serial.println("+- 1000 deg/s");
-    break;
-  case MPU6050_RANGE_2000_DEG:
-    Serial.println("+- 2000 deg/s");
-    break;
+    case MPU6050_RANGE_250_DEG:
+      Serial.println("+- 250 deg/s");
+      break;
+    case MPU6050_RANGE_500_DEG:
+      Serial.println("+- 500 deg/s");
+      break;
+    case MPU6050_RANGE_1000_DEG:
+      Serial.println("+- 1000 deg/s");
+      break;
+    case MPU6050_RANGE_2000_DEG:
+      Serial.println("+- 2000 deg/s");
+      break;
   }
 
   mpu1.setFilterBandwidth(MPU6050_BAND_21_HZ);
   Serial.print("Filter bandwidth set to: ");
   switch (mpu1.getFilterBandwidth()) {
-  case MPU6050_BAND_260_HZ:
-    Serial.println("260 Hz");
-    break;
-  case MPU6050_BAND_184_HZ:
-    Serial.println("184 Hz");
-    break;
-  case MPU6050_BAND_94_HZ:
-    Serial.println("94 Hz");
-    break;
-  case MPU6050_BAND_44_HZ:
-    Serial.println("44 Hz");
-    break;
-  case MPU6050_BAND_21_HZ:
-    Serial.println("21 Hz");
-    break;
-  case MPU6050_BAND_10_HZ:
-    Serial.println("10 Hz");
-    break;
-  case MPU6050_BAND_5_HZ:
-    Serial.println("5 Hz");
-    break;
+    case MPU6050_BAND_260_HZ:
+      Serial.println("260 Hz");
+      break;
+    case MPU6050_BAND_184_HZ:
+      Serial.println("184 Hz");
+      break;
+    case MPU6050_BAND_94_HZ:
+      Serial.println("94 Hz");
+      break;
+    case MPU6050_BAND_44_HZ:
+      Serial.println("44 Hz");
+      break;
+    case MPU6050_BAND_21_HZ:
+      Serial.println("21 Hz");
+      break;
+    case MPU6050_BAND_10_HZ:
+      Serial.println("10 Hz");
+      break;
+    case MPU6050_BAND_5_HZ:
+      Serial.println("5 Hz");
+      break;
   }
 
   Serial.println("");
@@ -91,13 +98,25 @@ void setup(void) {
 }
 
 void loop() {
-
   /* Get new sensor events with the readings */
   sensors_event_t a1, g1, temp1;
   mpu1.getEvent(&a1, &g1, &temp1);
 
-  /* Print out the values */
-  /*
+//calculate average velocity between time samples
+
+unsigned long Time = millis();
+delay(1);
+unsigned long newTime = millis();
+unsigned long deltaTime = newTime - Time;
+Serial.print(Time);
+Serial.print("\t");
+Serial.println(deltaTime);
+
+
+}
+
+/* OLD CODE FROM THE SKETCH: REMOVE AT END
+  Print out the values
   Serial.print("Acceleration X: ");
   Serial.print(a.acceleration.x);
   Serial.print(", Y: ");
@@ -105,7 +124,7 @@ void loop() {
   Serial.print(", Z: ");
   Serial.print(a.acceleration.z);
   Serial.println(" m/s^2");
-*/
+
   Serial.print("Rotation X: ");
   Serial.print(g1.gyro.x);
   Serial.print(", Y: ");
@@ -113,12 +132,11 @@ void loop() {
   Serial.print(", Z: ");
   Serial.print(g1.gyro.z);
   Serial.println(" rad/s");
-/*
+
   Serial.print("Temperature: ");
   Serial.print(temp.temperature);
   Serial.println(" degC");
 
   Serial.println("");
-  */
-  delay(10);
-}
+
+*/
