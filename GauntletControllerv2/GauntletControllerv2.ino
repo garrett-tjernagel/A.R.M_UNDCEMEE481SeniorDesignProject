@@ -3,32 +3,39 @@
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
+#include <math.h>
 
 Adafruit_MPU6050 mpu1;
 Adafruit_MPU6050 mpu2;
 
 int samplingTime = 1; //Enter time in ms
 
-float gwxo1, gwyo1, gwzo1 = 0;
-float gwxn1, gwyn1, gwzn1 = 0;
+float gwxrs1, gwyrs1, gwzrs1 = 0;
+float gwxrms1, gwyrms1, gwzrms1 = 0;
 unsigned long deltaTime, to, tc = 0;
 float xrc1, xrd1 = 0;
 float yrc1, yrd1 = 0;
 float zrc1, zrd1 = 0;
 
-float x1RotOffset=0.040768759;
-float y1RotOffset=-0.048155658;
-float z1RotOffset=-0.0491477;
+float x1RotOffset = 0.040768759;
+float y1RotOffset = -0.048155658;
+float z1RotOffset = -0.0491477;
 
-
+unsigned long prevTime = 0;
 
 void setup(void) {
-//Reset Variables
-float gwxo1, gwyo1, gwzo1 = 0;
-float gwxn1, gwyn1, gwzn1 = 0;
+  //Reset Variables
+  //Gyro 1 (Shoulder)
+float gwxrs1, gwyrs1, gwzrs1 = 0;
+float gwxrms1, gwyrms1, gwzrms1 = 0;
 unsigned long deltaTime, to, tc = 0;
 float xrc1, xrd1 = 0;
-  
+float yrc1, yrd1 = 0;
+float zrc1, zrd1 = 0;
+
+
+
+
   Serial.begin(115200);
   while (!Serial)
     delay(10); // will pause Zero, Leonardo, etc until serial console opens
@@ -116,55 +123,57 @@ void loop() {
   mpu1.getEvent(&a1, &g1, &temp1);
 
   //calculate average velocity between time samples
+  long newTime = millis();
+  deltaTime = (newTime - prevTime);
 
-  unsigned long Time = millis();
-  delay(samplingTime);
-  unsigned long newTime = millis();
-  unsigned long deltaTime = newTime - Time;
-  //Serial.print("Sampling Time (ms:)");
-  //Serial.print(deltaTime);
-  //Serial.print("\t");
+  Serial.print("\t");
+  Serial.print("System Time (ms:)");
+  Serial.print(deltaTime);
+  Serial.print("\t");
 
-  gwxn1 = g1.gyro.x;
-  gwyn1 = g1.gyro.y;
-  gwzn1 = g1.gyro.z;
+  gwxrs1 = g1.gyro.x + x1RotOffset;
+  gwyrs1 = g1.gyro.y + y1RotOffset;
+  gwzrs1 = g1.gyro.z + z1RotOffset;
+  //Serial.print("Gyro W: X (rad/s): ");
+  //Serial.print(gwxrs1, 10);
   //Serial.print("\t");
-  //Serial.print(gwxo1,10);
+  //Serial.print(gwyrs1, 10);
   //Serial.print("\t");
-  //Serial.print(gwxn1,10);
-  //Serial.print("\t");
-  float avgXW1 = ((gwxo1 + gwxn1) / 2)+x1RotOffset;
-  float avgYW1 = ((gwyo1 + gwyn1) / 2)+y1RotOffset;
-  float avgZW1 = ((gwzo1 + gwzn1) / 2)+z1RotOffset;
-  
-  //Serial.print("Current X,Y,Z Vel (rad/s) ");
-  //Serial.print(avgXW1,10);
-  //Serial.print("\t");
-  //Serial.print(avgYW1,10);
-  //Serial.print("\t");
-  //Serial.print(avgZW1,10);
+  //Serial.print(gwzrs1, 10);
   //Serial.print("\t");
 
+  gwxrms1 = gwxrs1 / 1000;
+  gwyrms1 = gwyrs1 / 1000;
+  gwzrms1 = gwzrs1 / 1000;
+  /*
+    Serial.print("Gyro W: X (rad/ms): ");
+    Serial.print(gwxrms1, 10);
+    Serial.print("\t");
+    Serial.print(gwyrms1, 10);
+    Serial.print("\t");
+    Serial.print(gwzrms1, 10);
+    Serial.print("\t");
+  */
 
- xrd1 = avgXW1 * deltaTime;
- yrd1 = avgYW1 * deltaTime;
- zrd1 = avgZW1 * deltaTime; 
+  xrd1 = (gwxrms1 * deltaTime) * 180 / M_PI;
+  yrd1 = (gwyrms1 * deltaTime) * 180 / M_PI;
+  zrd1 = (gwzrms1 * deltaTime) * 180 / M_PI;
+
   xrc1 = xrc1 + xrd1;
   yrc1 = yrc1 + yrd1;
   zrc1 = zrc1 + zrd1;
-  Serial.print("Current X,Y,Z Pos (rad)");
-  Serial.print(xrc1);
+  Serial.print("Gyro X,Y,Z (rad): ");
+  Serial.print(xrc1, 10);
   Serial.print("\t");
-  Serial.print(yrc1);
+  Serial.print(yrc1, 10);
   Serial.print("\t");
-  Serial.print(zrc1);
+  Serial.print(zrc1, 10);
   Serial.print("\t");
 
+  //Looping data points
 
-
-gwxo1 = gwxn1;
-gwyo1 = gwyn1;
-gwzo1 = gwzn1;
+  prevTime = newTime;
+  void  reset(void);
   Serial.println();
 }
 
