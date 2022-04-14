@@ -16,9 +16,9 @@ float xrc1, xrd1 = 0;
 float yrc1, yrd1 = 0;
 float zrc1, zrd1 = 0;
 
-float xRotOffset=0.04;
-float yRotOffset=0.00;
-float zRotOffset=0.00;
+float x1RotOffset=0.040768759;
+float y1RotOffset=-0.048155658;
+float z1RotOffset=-0.0491477;
 
 
 
@@ -121,9 +121,9 @@ void loop() {
   delay(samplingTime);
   unsigned long newTime = millis();
   unsigned long deltaTime = newTime - Time;
-  Serial.print("Sampling Time (ms:)");
-  Serial.print(deltaTime);
-  Serial.print("\t");
+  //Serial.print("Sampling Time (ms:)");
+  //Serial.print(deltaTime);
+  //Serial.print("\t");
 
   gwxn1 = g1.gyro.x;
   gwyn1 = g1.gyro.y;
@@ -133,17 +133,17 @@ void loop() {
   //Serial.print("\t");
   //Serial.print(gwxn1,10);
   //Serial.print("\t");
-  float avgXW1 = ((gwxo1 + gwxn1) / 2)+xRotOffset;
-  float avgYW1 = ((gwyo1 + gwyn1) / 2)+yRotOffset;
-  float avgZW1 = ((gwzo1 + gwzn1) / 2)+zRotOffset;
+  float avgXW1 = ((gwxo1 + gwxn1) / 2)+x1RotOffset;
+  float avgYW1 = ((gwyo1 + gwyn1) / 2)+y1RotOffset;
+  float avgZW1 = ((gwzo1 + gwzn1) / 2)+z1RotOffset;
   
   //Serial.print("Current X,Y,Z Vel (rad/s) ");
-  Serial.print(avgXW1,10);
-  Serial.print("\t");
-  Serial.print(avgYW1,10);
-  Serial.print("\t");
-  Serial.print(avgZW1,10);
-  Serial.print("\t");
+  //Serial.print(avgXW1,10);
+  //Serial.print("\t");
+  //Serial.print(avgYW1,10);
+  //Serial.print("\t");
+  //Serial.print(avgZW1,10);
+  //Serial.print("\t");
 
 
  xrd1 = avgXW1 * deltaTime;
@@ -152,13 +152,13 @@ void loop() {
   xrc1 = xrc1 + xrd1;
   yrc1 = yrc1 + yrd1;
   zrc1 = zrc1 + zrd1;
-  //Serial.print("Current X,Y,Z Pos (rad)");
-  //Serial.print(xrc1);
-  //Serial.print("\t");
-  //Serial.print(yrc1);
-  //Serial.print("\t");
-  //Serial.print(zrc1);
-  //Serial.print("\t");
+  Serial.print("Current X,Y,Z Pos (rad)");
+  Serial.print(xrc1);
+  Serial.print("\t");
+  Serial.print(yrc1);
+  Serial.print("\t");
+  Serial.print(zrc1);
+  Serial.print("\t");
 
 
 
