@@ -1,15 +1,35 @@
 //=========================================Introduction
-/*Code written by Garrett Tjernagel for 
- *UND CEM EE480-481 SP22 Senior Design Capstone Project
- *Augmented Robotic Manipulator (A.R.M)
- *Partners: Branson Elliot and William Prody
- * 
- */
-//=========================================Libraries
+/*Code written by Garrett Tjernagel for
+  UND CEM EE480-481 SP22 Senior Design Capstone Project
+  Augmented Robotic Manipulator (A.R.M)
+  Partners: Branson Elliot and William Prody
+
+*/
+
+//=========================================Sources, Inspiration, and Links
+/*
+  https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7309037/
+  https://forum.arduino.cc/t/simple-nrf24l01-2-4ghz-transceiver-demo/405123/2
+  https://www.instructables.com/How-to-use-a-Flex-Sensor-Arduino-Tutorial/
+  https://adafruit.github.io/Adafruit_MPU6050/html/class_adafruit___m_p_u6050.html#a64e6b74741d31138fb60f14ec2e7d9c1
+  https://arduino.stackexchange.com/questions/86031/adafruit-mpu-6050-and-adafruit-i2c-multiplexer
+  https://forum.arduino.cc/t/integration-of-acceleration/158296/10
+  https://forum.arduino.cc/t/measuring-time/96602/4
+
+
+
+*/
+
+//=========================================Libraries\
+//Gyro Stuff
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
 #include <math.h>
+//Radio STuff
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
 
 //=========================================Gyroscope Declarations and Variables
 Adafruit_MPU6050 mpu1;
@@ -50,10 +70,18 @@ const int thumbPin = A5;
 
 int pfFlex;
 
-//=========================================Datapack Variables
-byte package[2];
+//=========================================Datapack/Radio Declarations + Variables
+#define CE_PIN   9
+#define CSN_PIN 10
+
+const byte slaveAddress[5] = {'R', 'x', 'A', 'A', 'A'};
+
+RF24 radio(CE_PIN, CSN_PIN); // Create a Radio
+
+byte dataToSend[2] = {45, 45};
 
 //=========================================Setup
+
 void setup(void) {
   //Reset Variables
   //Gyro 1 (Shoulder)
@@ -71,13 +99,27 @@ void setup(void) {
 void loop() {
   //getGyroData();
   //getFlexData();
-  
+
+}
+
+//=========================================Data packaging and transmission
+void sendData() {
+  bool rslt;
+  rslt = radio.write( &dataToSend, sizeof(dataToSend) );
+
+  Serial.print("Data Sent");
+  if (rslt) {
+    Serial.println("A.R.M Rx: Valid");
+  }
+  else {
+    Serial.println("  Tx failed");
+  }
 }
 
 //=========================================Flex Sensor Data
-void getFlexData(){
-  pfFlex=analogRead(pointerFingerPin);
-  pfFlex=map(pfFlex,0,1023,0,100);
+void getFlexData() {
+  pfFlex = analogRead(pointerFingerPin);
+  pfFlex = map(pfFlex, 0, 1023, 0, 100);
   Serial.print("Pointer Finger Flex Percent: ");
   Serial.print(pfFlex);
   Serial.println("%");
@@ -213,6 +255,7 @@ void zeroSystem() {
   float zrc2, zrd2 = 0;
 }
 
+//=========================================Gyro Setup
 void setupGyros() {
   Serial.println("Adafruit MPU6050 test!");
 
@@ -231,7 +274,7 @@ void setupGyros() {
   }
   Serial.println("MPU6050 Found!\n Enter anything to begin >");
   while (!Serial.available());
-  
+
   mpu1.setAccelerometerRange(MPU6050_RANGE_8_G);
   Serial.print("Accelerometer range set to: ");
   switch (mpu1.getAccelerometerRange()) {
@@ -311,26 +354,11 @@ void setupGyros() {
   Serial.println("");
   delay(100);
 }
-/* OLD CODE FROM THE SKETCH: REMOVE AT END
-  Print out the values
-  Serial.print("Acceleration X: ");
-  Serial.print(a.acceleration.x);
-  Serial.print(", Y: ");
-  Serial.print(a.acceleration.y);
-  Serial.print(", Z: ");
-  Serial.print(a.acceleration.z);
-  Serial.println(" m/s^2");
 
-  Serial.print("Rotation X: ");
-  Serial.print(g1.gyro.x);
-  Serial.print(", Y: ");
-  Serial.print(g1.gyro.y);
-  Serial.print(", Z: ");
-  Serial.print(g1.gyro.z);
-  Serial.println(" rad/s");
-
-  Serial.print("Temperature: ");
-  Serial.print(temp.temperature);
-  Serial.println(" degC\n");
-
-*/
+//=========================================Radio Setup
+void radioSetup() {
+  radio.begin();
+  radio.setDataRate( RF24_250KBPS );
+  radio.setRetries(3, 5); // delay, count
+  radio.openWritingPipe(slaveAddress);
+}
