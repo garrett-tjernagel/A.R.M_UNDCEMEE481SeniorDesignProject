@@ -20,13 +20,13 @@
 
 */
 
-//=========================================Libraries\
+//=========================================Libraries
 //Gyro Stuff
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
 #include <math.h>
-//Radio STuff
+//Radio Stuff
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
