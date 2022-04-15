@@ -6,7 +6,6 @@
  * 
  */
 //=========================================Libraries
-
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
@@ -62,15 +61,17 @@ void setup(void) {
 
   Serial.begin(115200);
   while (!Serial)
-    delay(10); // will pause Zero, Leonardo, etc until serial console opens
+    delay(10); // will pause Zero, Leonardo, etc until serial console opens (DELETE THIS FOR THE FINAL ITERATIONS)
 
   setupGyros();
 
 }
-//=========================================Loop
+
+//=========================================Main Loop
 void loop() {
   //getGyroData();
   //getFlexData();
+  
 }
 
 //=========================================Flex Sensor Data
