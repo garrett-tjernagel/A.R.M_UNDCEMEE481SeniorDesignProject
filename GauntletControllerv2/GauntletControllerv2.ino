@@ -1,10 +1,18 @@
-// Basic demo for accelerometer readings from Adafruit MPU6050
+//=========================================Introduction
+/*Code written by Garrett Tjernagel for 
+ *UND CEM EE480-481 SP22 Senior Design Capstone Project
+ *Augmented Robotic Manipulator (A.R.M)
+ *Partners: Branson Elliot and William Prody
+ * 
+ */
+//=========================================Libraries
 
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
 #include <math.h>
 
+//=========================================Gyroscope Declarations and Variables
 Adafruit_MPU6050 mpu1;
 Adafruit_MPU6050 mpu2;
 
@@ -22,7 +30,7 @@ float xrc2, xrd2 = 0;
 float yrc2, yrd2 = 0;
 float zrc2, zrd2 = 0;
 
-
+//=========================================Gyro Offsets
 float x1RotOffset = 0.040768759;
 float y1RotOffset = -0.048155658;
 float z1RotOffset = -0.0491477;
@@ -34,132 +42,48 @@ float z2RotOffset = -0.021624156;
 unsigned long deltaTime = 0;
 unsigned long prevTime = 0;
 
+//=========================================Flex Sensor Variables
+const int pointerFingerPin = A1;
+const int middleFingerPin = A2;
+const int ringFingerPin = A3;
+const int pinkyFingerPin = A4;
+const int thumbPin = A5;
+
+int pfFlex;
+
+//=========================================Datapack Variables
+byte package[2];
+
+//=========================================Setup
 void setup(void) {
   //Reset Variables
   //Gyro 1 (Shoulder)
-  float gwxrs1, gwyrs1, gwzrs1 = 0;
-  float gwxrms1, gwyrms1, gwzrms1 = 0;
-  unsigned long deltaTime, to, tc = 0;
-  float xrc1, xrd1 = 0;
-  float yrc1, yrd1 = 0;
-  float zrc1, zrd1 = 0;
-
-  //Wrist
-  float gwxrs2, gwyrs2, gwzrs2 = 0;
-  float gwxrms2, gwyrms2, gwzrms2 = 0;
-  float xrc2, xrd2 = 0;
-  float yrc2, yrd2 = 0;
-  float zrc2, zrd2 = 0;
-
-
-
+  zeroSystem();
 
   Serial.begin(115200);
   while (!Serial)
     delay(10); // will pause Zero, Leonardo, etc until serial console opens
 
-  Serial.println("Adafruit MPU6050 test!");
+  setupGyros();
 
-  // Try to initialize!
-  if (!mpu1.begin(0x68)) {
-    Serial.println("Failed to find Gyro1");
-    while (1) {
-      delay(10);
-    }
-  }
-  if (!mpu2.begin(0x69)) {
-    Serial.println("Failed to find Gyro2");
-    while (1) {
-      delay(10);
-    }
-  }
-  Serial.println("MPU6050 Found!\n Enter anything to begin >");
-  while (!Serial.available());
-
-  mpu1.setAccelerometerRange(MPU6050_RANGE_8_G);
-  Serial.print("Accelerometer range set to: ");
-  switch (mpu1.getAccelerometerRange()) {
-    case MPU6050_RANGE_2_G:
-      Serial.println("+-2G");
-      break;
-    case MPU6050_RANGE_4_G:
-      Serial.println("+-4G");
-      break;
-    case MPU6050_RANGE_8_G:
-      Serial.println("+-8G");
-      break;
-    case MPU6050_RANGE_16_G:
-      Serial.println("+-16G");
-      break;
-
-  }
-  mpu1.setGyroRange(MPU6050_RANGE_500_DEG);
-  Serial.print("Gyro range set to: ");
-  switch (mpu1.getGyroRange()) {
-    case MPU6050_RANGE_250_DEG:
-      Serial.println("+- 250 deg/s");
-      break;
-    case MPU6050_RANGE_500_DEG:
-      Serial.println("+- 500 deg/s");
-      break;
-    case MPU6050_RANGE_1000_DEG:
-      Serial.println("+- 1000 deg/s");
-      break;
-    case MPU6050_RANGE_2000_DEG:
-      Serial.println("+- 2000 deg/s");
-      break;
-  }
-  mpu2.setGyroRange(MPU6050_RANGE_500_DEG);
-  Serial.print("Gyro range set to: ");
-  switch (mpu2.getGyroRange()) {
-    case MPU6050_RANGE_250_DEG:
-      Serial.println("+- 250 deg/s");
-      break;
-    case MPU6050_RANGE_500_DEG:
-      Serial.println("+- 500 deg/s");
-      break;
-    case MPU6050_RANGE_1000_DEG:
-      Serial.println("+- 1000 deg/s");
-      break;
-    case MPU6050_RANGE_2000_DEG:
-      Serial.println("+- 2000 deg/s");
-      break;
-  }
-
-  mpu1.setFilterBandwidth(MPU6050_BAND_21_HZ);
-  Serial.print("Filter bandwidth set to: ");
-  switch (mpu1.getFilterBandwidth()) {
-    case MPU6050_BAND_260_HZ:
-      Serial.println("260 Hz");
-      break;
-    case MPU6050_BAND_184_HZ:
-      Serial.println("184 Hz");
-      break;
-    case MPU6050_BAND_94_HZ:
-      Serial.println("94 Hz");
-      break;
-    case MPU6050_BAND_44_HZ:
-      Serial.println("44 Hz");
-      break;
-    case MPU6050_BAND_21_HZ:
-      Serial.println("21 Hz");
-      break;
-    case MPU6050_BAND_10_HZ:
-      Serial.println("10 Hz");
-      break;
-    case MPU6050_BAND_5_HZ:
-      Serial.println("5 Hz");
-      break;
-  }
-
-
-
-  Serial.println("");
-  delay(100);
+}
+//=========================================Loop
+void loop() {
+  //getGyroData();
+  //getFlexData();
 }
 
-void loop() {
+//=========================================Flex Sensor Data
+void getFlexData(){
+  pfFlex=analogRead(pointerFingerPin);
+  pfFlex=map(pfFlex,0,1023,0,100);
+  Serial.print("Pointer Finger Flex Percent: ");
+  Serial.print(pfFlex);
+  Serial.println("%");
+}
 
+//=========================================Gyro Data
+void getGyroData() {
   if (millis() < 1500) {
     zeroSystem();
   } else {
@@ -288,6 +212,104 @@ void zeroSystem() {
   float zrc2, zrd2 = 0;
 }
 
+void setupGyros() {
+  Serial.println("Adafruit MPU6050 test!");
+
+  // Try to initialize!
+  if (!mpu1.begin(0x68)) {
+    Serial.println("Failed to find Gyro1");
+    while (1) {
+      delay(10);
+    }
+  }
+  if (!mpu2.begin(0x69)) {
+    Serial.println("Failed to find Gyro2");
+    while (1) {
+      delay(10);
+    }
+  }
+  Serial.println("MPU6050 Found!\n Enter anything to begin >");
+  while (!Serial.available());
+  
+  mpu1.setAccelerometerRange(MPU6050_RANGE_8_G);
+  Serial.print("Accelerometer range set to: ");
+  switch (mpu1.getAccelerometerRange()) {
+    case MPU6050_RANGE_2_G:
+      Serial.println("+-2G");
+      break;
+    case MPU6050_RANGE_4_G:
+      Serial.println("+-4G");
+      break;
+    case MPU6050_RANGE_8_G:
+      Serial.println("+-8G");
+      break;
+    case MPU6050_RANGE_16_G:
+      Serial.println("+-16G");
+      break;
+
+  }
+  mpu1.setGyroRange(MPU6050_RANGE_500_DEG);
+  Serial.print("Gyro range set to: ");
+  switch (mpu1.getGyroRange()) {
+    case MPU6050_RANGE_250_DEG:
+      Serial.println("+- 250 deg/s");
+      break;
+    case MPU6050_RANGE_500_DEG:
+      Serial.println("+- 500 deg/s");
+      break;
+    case MPU6050_RANGE_1000_DEG:
+      Serial.println("+- 1000 deg/s");
+      break;
+    case MPU6050_RANGE_2000_DEG:
+      Serial.println("+- 2000 deg/s");
+      break;
+  }
+  mpu2.setGyroRange(MPU6050_RANGE_500_DEG);
+  Serial.print("Gyro range set to: ");
+  switch (mpu2.getGyroRange()) {
+    case MPU6050_RANGE_250_DEG:
+      Serial.println("+- 250 deg/s");
+      break;
+    case MPU6050_RANGE_500_DEG:
+      Serial.println("+- 500 deg/s");
+      break;
+    case MPU6050_RANGE_1000_DEG:
+      Serial.println("+- 1000 deg/s");
+      break;
+    case MPU6050_RANGE_2000_DEG:
+      Serial.println("+- 2000 deg/s");
+      break;
+  }
+
+  mpu1.setFilterBandwidth(MPU6050_BAND_21_HZ);
+  Serial.print("Filter bandwidth set to: ");
+  switch (mpu1.getFilterBandwidth()) {
+    case MPU6050_BAND_260_HZ:
+      Serial.println("260 Hz");
+      break;
+    case MPU6050_BAND_184_HZ:
+      Serial.println("184 Hz");
+      break;
+    case MPU6050_BAND_94_HZ:
+      Serial.println("94 Hz");
+      break;
+    case MPU6050_BAND_44_HZ:
+      Serial.println("44 Hz");
+      break;
+    case MPU6050_BAND_21_HZ:
+      Serial.println("21 Hz");
+      break;
+    case MPU6050_BAND_10_HZ:
+      Serial.println("10 Hz");
+      break;
+    case MPU6050_BAND_5_HZ:
+      Serial.println("5 Hz");
+      break;
+  }
+
+  Serial.println("");
+  delay(100);
+}
 /* OLD CODE FROM THE SKETCH: REMOVE AT END
   Print out the values
   Serial.print("Acceleration X: ");
@@ -308,8 +330,6 @@ void zeroSystem() {
 
   Serial.print("Temperature: ");
   Serial.print(temp.temperature);
-  Serial.println(" degC");
-
-  Serial.println("");
+  Serial.println(" degC\n");
 
 */
