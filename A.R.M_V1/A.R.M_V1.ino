@@ -12,6 +12,7 @@
 
 */
 //=========================================Libraries
+//Gyro Stuff
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
@@ -20,13 +21,43 @@
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
+//Servo Stuff
+#include <Servo.h>
+
+//=========================================Servo Things
+//Arm Servos
+Servo shoulder1Servo;
+Servo shoulder2Servo;
+Servo elbowServo;
+Servo forearmServo;
+Servo wristServo;
+
+//Hand Servos
+Servo thumbServo;
+Servo pointerFingerServo;
+Servo middleFingerServo;
+Servo ringFingerServo;
+Servo pinkyFingerServo;
+
+//Servo Pins
+int shoulder1Pin=0;
+int shoulder2Pin=0;
+int elbowPin=0;
+int forearmPin=0;
+int wristPin=0;
+
+int thumbPin=0;
+int pointerFingerPin=0;
+int middleFinerPin=0;
+int ringFingerPin=0;
+int pinkyFingerPin=0;
 
 
-//=========================================  1.Servo objects
 //=========================================  2.Radio setup
 //=========================================  3.Gyro setup
 
 void setup() {
+Serial.begin(115200);
 
 
 }
