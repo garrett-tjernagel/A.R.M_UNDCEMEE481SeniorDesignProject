@@ -97,7 +97,7 @@ void setup(void) {
 
 //=========================================Main Loop
 void loop() {
-  //getGyroData();
+  getGyroData();
   //getFlexData();
 
 }
