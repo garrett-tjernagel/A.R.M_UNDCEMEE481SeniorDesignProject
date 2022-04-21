@@ -70,6 +70,17 @@ const int thumbPin = A5;
 
 int pfFlex;
 
+//=========================================Potentiameter
+#define CLK 11
+#define DT 12
+#define SW 13
+
+int counter = 0;
+int currentStateCLK;
+int lastStateCLK;
+String currentDir = "";
+unsigned long lastButtonPress = 0;
+
 //=========================================Datapack/Radio Declarations + Variables
 #define CE_PIN   9
 #define CSN_PIN 10
@@ -86,6 +97,7 @@ void setup(void) {
   //Reset Variables
   //Gyro 1 (Shoulder)
   zeroSystem();
+  potSetup();
 
   Serial.begin(115200);
   while (!Serial)
@@ -97,9 +109,9 @@ void setup(void) {
 
 //=========================================Main Loop
 void loop() {
-  getGyroData();
+  //getGyroData();
   //getFlexData();
-
+  potRun();
 }
 
 //=========================================Data packaging and transmission
@@ -124,6 +136,52 @@ void getFlexData() {
   Serial.print(pfFlex);
   //Serial.print("%");
   Serial.println();
+}
+
+//=========================================Potentiameter Data
+void potRun() {
+  // Read the current state of CLK
+  currentStateCLK = digitalRead(CLK);
+
+  // If last and current state of CLK are different, then pulse occurred
+  // React to only 1 state change to avoid double count
+  if (currentStateCLK != lastStateCLK  && currentStateCLK == 1) {
+
+    // If the DT state is different than the CLK state then
+    // the encoder is rotating CCW so decrement
+    if (digitalRead(DT) != currentStateCLK) {
+      counter --;
+      currentDir = "CCW";
+    } else {
+      // Encoder is rotating CW so increment
+      counter ++;
+      currentDir = "CW";
+    }
+
+    Serial.print("Direction: ");
+    Serial.print(currentDir);
+    Serial.print(" | Counter: ");
+    Serial.println(counter);
+  }
+
+  // Remember last CLK state
+  lastStateCLK = currentStateCLK;
+
+  // Read the button state
+  int btnState = digitalRead(SW);
+
+  //If we detect LOW signal, button is pressed
+  if (btnState == LOW) {
+    //if 50ms have passed since last LOW pulse, it means that the
+    //button has been pressed, released and pressed again
+    if (millis() - lastButtonPress > 50) {
+      Serial.println("Button pressed!");
+    }
+
+    // Remember last button press event
+    lastButtonPress = millis();
+  }
+
 }
 
 //=========================================Gyro Data
@@ -362,4 +420,17 @@ void radioSetup() {
   radio.setDataRate( RF24_250KBPS );
   radio.setRetries(3, 5); // delay, count
   radio.openWritingPipe(slaveAddress);
+}
+
+void potSetup() {
+  // Set encoder pins as inputs
+  pinMode(CLK, INPUT);
+  pinMode(DT, INPUT);
+  pinMode(SW, INPUT_PULLUP);
+
+  // Setup Serial Monitor
+  Serial.begin(9600);
+
+  // Read the initial state of CLK
+  lastStateCLK = digitalRead(CLK);
 }
