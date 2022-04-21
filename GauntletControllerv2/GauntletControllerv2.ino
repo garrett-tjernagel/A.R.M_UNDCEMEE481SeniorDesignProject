@@ -119,10 +119,11 @@ void sendData() {
 //=========================================Flex Sensor Data
 void getFlexData() {
   pfFlex = analogRead(pointerFingerPin);
-  pfFlex = map(pfFlex, 0, 1023, 0, 100);
+  //pfFlex = map(pfFlex, 0, 1023, 0, 100);
   Serial.print("Pointer Finger Flex Percent: ");
   Serial.print(pfFlex);
-  Serial.println("%");
+  //Serial.print("%");
+  Serial.println();
 }
 
 //=========================================Gyro Data
