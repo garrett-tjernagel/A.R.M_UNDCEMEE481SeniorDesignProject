@@ -50,13 +50,13 @@ float yrc2, yrd2 = 0;
 float zrc2, zrd2 = 0;
 
 //=========================================Gyro Offsets
-float x1RotOffset = 0.040768759;
-float y1RotOffset = -0.048155658;
-float z1RotOffset = -0.0491477;
+float x1RotOffset = 0.040235834;
+float y1RotOffset = -0.04848043;
+float z1RotOffset = -0.059592639;
 
-float x2RotOffset = -0.951493925;
-float y2RotOffset = 0.008503545;
-float z2RotOffset = -0.021624156;
+float x2RotOffset = -0.975496883;
+float y2RotOffset = -0.029383543;
+float z2RotOffset = -0.029979449;
 
 unsigned long deltaTime = 0;
 unsigned long prevTime = 0;
@@ -70,16 +70,25 @@ const int thumbPin = A5;
 
 int pfFlex;
 
-//=========================================Potentiameter
-#define CLK 11
-#define DT 12
-#define SW 13
+/*
+  //=========================================Encoder
+  #define CLK 11
+  #define DT 12
+  #define SW 13
 
-int counter = 0;
-int currentStateCLK;
-int lastStateCLK;
-String currentDir = "";
-unsigned long lastButtonPress = 0;
+  int counter = 0;
+  int currentStateCLK;
+  int lastStateCLK;
+  String currentDir = "";
+  unsigned long lastButtonPress = 0;
+*/
+//=========================================Potentiameter
+void potRead() {
+  int potValue = analogRead(A0);
+  Serial.print(potValue);
+  Serial.print("\t");
+  Serial.println(map(potValue, 0, 827, 45, 180));
+}
 
 //=========================================Datapack/Radio Declarations + Variables
 #define CE_PIN   9
@@ -97,7 +106,7 @@ void setup(void) {
   //Reset Variables
   //Gyro 1 (Shoulder)
   zeroSystem();
-  potSetup();
+  //encoderSetup();
 
   Serial.begin(115200);
   while (!Serial)
@@ -106,13 +115,19 @@ void setup(void) {
   setupGyros();
 
 }
-
+//=========================================
+//=========================================
 //=========================================Main Loop
 void loop() {
+  getGyroAccel();
   //getGyroData();
   //getFlexData();
-  potRun();
+  //encoderRun();
+  //potRead();
 }
+//=========================================
+//=========================================
+//=========================================
 
 //=========================================Data packaging and transmission
 void sendData() {
@@ -138,8 +153,9 @@ void getFlexData() {
   Serial.println();
 }
 
-//=========================================Potentiameter Data
-void potRun() {
+/*
+  //=========================================Encoder Data
+  void encoderRun() {
   // Read the current state of CLK
   currentStateCLK = digitalRead(CLK);
 
@@ -182,9 +198,58 @@ void potRun() {
     lastButtonPress = millis();
   }
 
-}
+  }
+*/
 
 //=========================================Gyro Data
+void getGyroAccel() {
+  if (millis() < 1500) {
+    zeroSystem();
+  } else {
+    /* Get new sensor events with the readings */
+    sensors_event_t a1, g1, temp1;
+    sensors_event_t a2, g2, temp2;
+    mpu1.getEvent(&a1, &g1, &temp1);
+    mpu2.getEvent(&a2, &g2, &temp2);
+
+    //calculate average velocity between time samples
+    long newTime = millis();
+    deltaTime = (newTime - prevTime);
+    /*
+        Serial.print("\t");
+        Serial.print("System Time (ms:)");
+        Serial.print(deltaTime);
+        Serial.print("\t");
+    */
+
+    gwxrs1 = g1.gyro.x + x1RotOffset;
+    gwyrs1 = g1.gyro.y + y1RotOffset;
+    gwzrs1 = g1.gyro.z + z1RotOffset;
+
+    gwxrs2 = g2.gyro.x + x2RotOffset;
+    gwyrs2 = g2.gyro.y + y2RotOffset;
+    gwzrs2 = g2.gyro.z + z2RotOffset;
+
+
+    //Serial.print("Gyro W: X (rad/s): ");
+    Serial.print(gwxrs1, 10);
+    Serial.print("\t");
+    Serial.print(gwyrs1, 10);
+    Serial.print("\t");
+    Serial.print(gwzrs1, 10);
+    Serial.print("\t");
+
+    //Serial.print("Gyro2 W: X,Y,Z (rad/s): ");
+    //Serial.print("\t");
+    Serial.print(gwxrs2, 10);
+    Serial.print("\t");
+    Serial.print(gwyrs2, 10);
+    Serial.print("\t");
+    Serial.print(gwzrs2, 10);
+    Serial.println();
+  }
+}
+
 void getGyroData() {
   if (millis() < 1500) {
     zeroSystem();
@@ -422,7 +487,8 @@ void radioSetup() {
   radio.openWritingPipe(slaveAddress);
 }
 
-void potSetup() {
+/*
+  void encoderSetup() {
   // Set encoder pins as inputs
   pinMode(CLK, INPUT);
   pinMode(DT, INPUT);
@@ -433,4 +499,5 @@ void potSetup() {
 
   // Read the initial state of CLK
   lastStateCLK = digitalRead(CLK);
-}
+  }
+*/
