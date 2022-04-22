@@ -50,13 +50,13 @@ float yrc2, yrd2 = 0;
 float zrc2, zrd2 = 0;
 
 //=========================================Gyro Offsets
-float x1RotOffset = 0.040235834;
-float y1RotOffset = -0.04848043;
-float z1RotOffset = -0.059592639;
+float x1RotOffset = 0.041478744;
+float y1RotOffset = -0.048496174;
+float z1RotOffset = -0.059629592;
 
-float x2RotOffset = -0.975496883;
-float y2RotOffset = -0.029383543;
-float z2RotOffset = -0.029979449;
+float x2RotOffset = -0.924217463;
+float y2RotOffset = -0.030702496;
+float z2RotOffset = -0.01280241;
 
 unsigned long deltaTime = 0;
 unsigned long prevTime = 0;
@@ -82,13 +82,6 @@ int pfFlex;
   String currentDir = "";
   unsigned long lastButtonPress = 0;
 */
-//=========================================Potentiameter
-void potRead() {
-  int potValue = analogRead(A0);
-  Serial.print(potValue);
-  Serial.print("\t");
-  Serial.println(map(potValue, 0, 827, 45, 180));
-}
 
 //=========================================Datapack/Radio Declarations + Variables
 #define CE_PIN   9
@@ -100,8 +93,16 @@ RF24 radio(CE_PIN, CSN_PIN); // Create a Radio
 
 byte dataToSend[2] = {45, 45};
 
-//=========================================Setup
+//========================================= Configuration Variables
+int potPin=A0;
+int potUpperLim=180;
+int potLowerLim=45;
 
+
+
+//=========================================Setup
+//=========================================
+//=========================================
 void setup(void) {
   //Reset Variables
   //Gyro 1 (Shoulder)
@@ -119,8 +120,8 @@ void setup(void) {
 //=========================================
 //=========================================Main Loop
 void loop() {
-  getGyroAccel();
-  //getGyroData();
+  //getGyroAccel();
+  getGyroData();
   //getFlexData();
   //encoderRun();
   //potRead();
@@ -151,6 +152,14 @@ void getFlexData() {
   Serial.print(pfFlex);
   //Serial.print("%");
   Serial.println();
+}
+
+//=========================================Potentiameter
+void potRead() {
+  int potValue = analogRead(potPin);
+  Serial.print(potValue);
+  Serial.print("\t");
+  Serial.println(map(potValue, 0, 827, potLowerLim, potUpperLim));
 }
 
 /*
