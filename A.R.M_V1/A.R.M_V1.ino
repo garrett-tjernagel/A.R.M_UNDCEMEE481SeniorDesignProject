@@ -6,7 +6,6 @@
 
   4/23/22 1:05pm added initial radio comms for ARM
 
-  Test for garrett
 */
 
 //=========================================Sources, Inspiration, and Links
@@ -52,6 +51,8 @@ int yawPin = 11;
 int elbowPin = 10;
 int forearmPin = 9;
 int wristPin = 8;
+int servoPins[6] = {pitchPin1, pitchPin2, yawPin, elbowPin, forearmPin, wristPin};
+int servoAngle;
 
 int thumbPin = 0;
 int pointerFingerPin = 0;
@@ -102,6 +103,14 @@ unsigned long deltaTime = 0;
 unsigned long prevTime = 0;
 
 
+//==========================================Testing
+const byte numChars = 32;
+char receivedChars[numChars];   // an array to store the received data
+
+boolean testData = false;
+
+int dataNumber = 0;             // new for this version
+
 void setup() {
   Serial.begin(115200);
   while (!Serial)
@@ -114,14 +123,47 @@ void setup() {
 
 void loop() {
   //getGyroData();
-  getData();
-  showData();
+  //getData();
+  //showData();
+  servoTest();
 }
+
 //=========================================  4.Initialization (Homing)
+void initializeServos() {
+  delay(10);
+  shoulderPitch1.write(25);
+  shoulderPitch2.write(25);
+  delay(10);
+  shoulderYaw.write(90);
+  delay(10);
+  elbowServo.write(0);
+  delay(10);
+  forearmServo.write(0);
+  delay(10);
+  wristServo.write(90);
+}
 //=========================================  5.Internal Data acquisition
 //=========================================  6.External Controller data acquisition
 //=========================================  7.Rudimentary PID for each servo
 //=========================================  8.Servo movement assignment
+
+//========================================= Servo Testing
+void servoTest() {
+  int i, upperLim, lowerLim;
+  upperLim = 120;
+  lowerLim = 60;
+
+  for (i = lowerLim; i < upperLim; i++) {
+    wristServo.write(i);
+    delay(15);
+  }
+  delay(100);
+  for (i = upperLim; i > lowerLim; --i) {
+    wristServo.write(i);
+    delay(15);
+  }
+  delay(100);
+}
 
 void setupRadio() {
   Serial.println("SimpleRx Starting");
@@ -166,57 +208,66 @@ void setupGyros() {
       Serial.println("+-16G");
       break;
 
-      mpu2.setAccelerometerRange(MPU6050_RANGE_8_G);
-      Serial.print("Accelerometer range set to: ");
-      switch (mpu1.getAccelerometerRange()) {
-        case MPU6050_RANGE_2_G:
-          Serial.println("+-2G");
-          break;
-        case MPU6050_RANGE_4_G:
-          Serial.println("+-4G");
-          break;
-        case MPU6050_RANGE_8_G:
-          Serial.println("+-8G");
-          break;
-        case MPU6050_RANGE_16_G:
-          Serial.println("+-16G");
-          break;
+  }
+  mpu1.setGyroRange(MPU6050_RANGE_500_DEG);
+  Serial.print("Gyro range set to: ");
+  switch (mpu1.getGyroRange()) {
+    case MPU6050_RANGE_250_DEG:
+      Serial.println("+- 250 deg/s");
+      break;
+    case MPU6050_RANGE_500_DEG:
+      Serial.println("+- 500 deg/s");
+      break;
+    case MPU6050_RANGE_1000_DEG:
+      Serial.println("+- 1000 deg/s");
+      break;
+    case MPU6050_RANGE_2000_DEG:
+      Serial.println("+- 2000 deg/s");
+      break;
+  }
+  mpu2.setGyroRange(MPU6050_RANGE_500_DEG);
+  Serial.print("Gyro range set to: ");
+  switch (mpu2.getGyroRange()) {
+    case MPU6050_RANGE_250_DEG:
+      Serial.println("+- 250 deg/s");
+      break;
+    case MPU6050_RANGE_500_DEG:
+      Serial.println("+- 500 deg/s");
+      break;
+    case MPU6050_RANGE_1000_DEG:
+      Serial.println("+- 1000 deg/s");
+      break;
+    case MPU6050_RANGE_2000_DEG:
+      Serial.println("+- 2000 deg/s");
+      break;
+  }
 
-      }
-      mpu1.setGyroRange(MPU6050_RANGE_500_DEG);
-      Serial.print("Gyro range set to: ");
-      switch (mpu1.getGyroRange()) {
-        case MPU6050_RANGE_250_DEG:
-          Serial.println("+- 250 deg/s");
-          break;
-        case MPU6050_RANGE_500_DEG:
-          Serial.println("+- 500 deg/s");
-          break;
-        case MPU6050_RANGE_1000_DEG:
-          Serial.println("+- 1000 deg/s");
-          break;
-        case MPU6050_RANGE_2000_DEG:
-          Serial.println("+- 2000 deg/s");
-          break;
-      }
-      mpu2.setGyroRange(MPU6050_RANGE_500_DEG);
-      Serial.print("Gyro range set to: ");
-      switch (mpu2.getGyroRange()) {
-        case MPU6050_RANGE_250_DEG:
-          Serial.println("+- 250 deg/s");
-          break;
-        case MPU6050_RANGE_500_DEG:
-          Serial.println("+- 500 deg/s");
-          break;
-        case MPU6050_RANGE_1000_DEG:
-          Serial.println("+- 1000 deg/s");
-          break;
-        case MPU6050_RANGE_2000_DEG:
-          Serial.println("+- 2000 deg/s");
-          break;
-      }
+  mpu1.setFilterBandwidth(MPU6050_BAND_21_HZ);
+  Serial.print("Filter bandwidth set to: ");
+  switch (mpu1.getFilterBandwidth()) {
+    case MPU6050_BAND_260_HZ:
+      Serial.println("260 Hz");
+      break;
+    case MPU6050_BAND_184_HZ:
+      Serial.println("184 Hz");
+      break;
+    case MPU6050_BAND_94_HZ:
+      Serial.println("94 Hz");
+      break;
+    case MPU6050_BAND_44_HZ:
+      Serial.println("44 Hz");
+      break;
+    case MPU6050_BAND_21_HZ:
+      Serial.println("21 Hz");
+      break;
+    case MPU6050_BAND_10_HZ:
+      Serial.println("10 Hz");
+      break;
+    case MPU6050_BAND_5_HZ:
+      Serial.println("5 Hz");
+      break;
 
-      mpu1.setFilterBandwidth(MPU6050_BAND_21_HZ);
+      mpu2.setFilterBandwidth(MPU6050_BAND_21_HZ);
       Serial.print("Filter bandwidth set to: ");
       switch (mpu1.getFilterBandwidth()) {
         case MPU6050_BAND_260_HZ:
@@ -370,7 +421,7 @@ void showData() {
   int i;
   if (newData == true) {
     Serial.print("Data received:\t");
-    for (i = 0; i < sizeof(dataReceived); i++) {
+    for (i = 0; i <= 4; i++) {
       Serial.print(dataReceived[i]);
       Serial.print("/t");
     }
