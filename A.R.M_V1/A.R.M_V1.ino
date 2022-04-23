@@ -113,14 +113,6 @@ unsigned long deltaTime = 0;
 unsigned long prevTime = 0;
 
 
-//==========================================Testing
-const byte numChars = 32;
-char receivedChars[numChars];   // an array to store the received data
-
-boolean testData = false;
-
-int dataNumber = 0;             // new for this version
-
 void setup() {
   Serial.begin(115200);
   while (!Serial)
@@ -137,6 +129,19 @@ void loop() {
   getData();
   showData();
   //servoTest();
+
+  Serial.print("Datapack:\t");
+  Serial.print(dataReceived[0]);
+  Serial.print("\t");
+  Serial.print(dataReceived[1]);
+  Serial.print("\t");
+  Serial.print(dataReceived[2]);
+  Serial.print("\t");
+  Serial.print(dataReceived[3]);
+  Serial.print("\t");
+  Serial.print(dataReceived[4]);
+  Serial.print("\t >>>");
+  Serial.println(sizeof(dataReceived));
 }
 
 //=========================================  4.Initialization (Homing)
@@ -188,9 +193,8 @@ void setupServos() {
   shoulderPitch1.attach(pitchPin1);
   shoulderPitch2.attach(pitchPin2);
   shoulderYaw.attach(yawPin);
-
-
 }
+
 void setupRadio() {
   Serial.println("SimpleRx Starting");
   radio.begin();
@@ -411,23 +415,23 @@ void getGyroData() {
     xrc2 = xrc2 + xrd2;
     yrc2 = yrc2 + yrd2;
     zrc2 = zrc2 + zrd2;
-/*
-    Serial.print("Gyro1 X,Y,Z (rad): ");
-    Serial.print(xrc1, 4);
-    Serial.print("\t");
-    Serial.print(yrc1, 4);
-    Serial.print("\t");
-    Serial.print(zrc1, 4);
-    Serial.print("\t");
+    /*
+        Serial.print("Gyro1 X,Y,Z (rad): ");
+        Serial.print(xrc1, 4);
+        Serial.print("\t");
+        Serial.print(yrc1, 4);
+        Serial.print("\t");
+        Serial.print(zrc1, 4);
+        Serial.print("\t");
 
-    Serial.print("Gyro2 X,Y,Z (rad): ");
-    Serial.print(xrc2, 4);
-    Serial.print("\t");
-    Serial.print(yrc2, 4);
-    Serial.print("\t");
-    Serial.print(zrc2, 4);
-    Serial.print("\t");
-*/
+        Serial.print("Gyro2 X,Y,Z (rad): ");
+        Serial.print(xrc2, 4);
+        Serial.print("\t");
+        Serial.print(yrc2, 4);
+        Serial.print("\t");
+        Serial.print(zrc2, 4);
+        Serial.print("\t");
+    */
     //Looping data points
 
     prevTime = newTime;
@@ -444,14 +448,18 @@ void getData() {
 }
 
 void showData() {
-  int i;
+
   if (newData == true) {
     Serial.print("Data received:\t");
-    for (i = 0; i <= 4; i++) {
-      Serial.print(dataReceived[i]);
-      Serial.print("/t");
-    }
-    Serial.println();
+    Serial.print(dataReceived[0]);
+    Serial.print("/t");
+    Serial.print(dataReceived[1]);
+    Serial.print("/t");
+    Serial.print(dataReceived[2]);
+    Serial.print("/t");
+    Serial.print(dataReceived[3]);
+    Serial.print("/t");
+    Serial.println(dataReceived[4]);
     newData = false;
   }
 }

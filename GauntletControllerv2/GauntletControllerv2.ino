@@ -84,7 +84,7 @@ int pfFlex;
 */
 
 //=========================================Datapack/Radio Declarations + Variables
-#define CE_PIN   7
+#define CE_PIN  7
 #define CSN_PIN 8
 
 const byte slaveAddress[5] = {'R', 'x', 'A', 'A', 'A'};
@@ -136,7 +136,7 @@ void loop() {
   //getFlexData();
   //encoderRun();
   potRead();
-  //sendData();
+  
 
   Serial.print("Datapack:\t");
   Serial.print(dataToSend[0]);
@@ -150,6 +150,7 @@ void loop() {
   Serial.print(dataToSend[4]);
   Serial.print("\t >>>");
   Serial.println(sizeof(dataToSend));
+  sendData();
 }
 //=========================================
 //=========================================
@@ -163,10 +164,10 @@ void sendData() {
 
   Serial.print("Data Sent");
   if (rslt) {
-    Serial.println("A.R.M Rx: Valid");
+    //Serial.println("A.R.M Rx: Valid");
   }
   else {
-    Serial.println("  Tx failed");
+    Serial.print("Tx failed\t");
   }
 }
 
