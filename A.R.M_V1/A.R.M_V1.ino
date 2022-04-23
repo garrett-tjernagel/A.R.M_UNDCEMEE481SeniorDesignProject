@@ -5,6 +5,7 @@
   Partners: Branson Elliott and William Prody
 
   4/23/22 1:05pm added initial radio comms for ARM
+  3:53pm organized some code, added servo testing to get the initial servo limits found out. 
 
 */
 
@@ -116,8 +117,9 @@ void setup() {
   while (!Serial)
     delay(10); // will pause Zero, Leonardo, etc until serial console opens (DELETE THIS FOR THE FINAL ITERATIONS)
 
-  setupGyros();
-  setupRadio();
+  //setupGyros();
+  //setupRadio();
+  setupServos();
 
 }
 
@@ -149,6 +151,10 @@ void initializeServos() {
 
 //========================================= Servo Testing
 void servoTest() {
+  bool stopVar=true;
+  Serial.println("Enter anything to begin servo testing.");
+  while(!Serial.available());
+  while(stopVar==true){
   int i, upperLim, lowerLim;
   upperLim = 120;
   lowerLim = 60;
@@ -164,7 +170,12 @@ void servoTest() {
   }
   delay(100);
 }
+}
 
+void setupServos(){
+  wristServo.attach(wristPin); 
+ 
+}
 void setupRadio() {
   Serial.println("SimpleRx Starting");
   radio.begin();
