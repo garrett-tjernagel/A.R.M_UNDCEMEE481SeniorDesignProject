@@ -2,9 +2,9 @@
 /*Code written by Garrett Tjernagel for
   UND CEM EE480-481 SP22 Senior Design Capstone Project
   Augmented Robotic Manipulator (A.R.M)
-  Partners: Branson Elliot and William Prody
+  Partners: Branson Elliott and William Prody
 
-  Hi branson
+  4/23/22 1:05pm added initial radio comms for ARM
 
 */
 
@@ -30,8 +30,9 @@
 
 //=========================================Servo Things
 //Arm Servos
-Servo shoulder1Servo;
-Servo shoulder2Servo;
+Servo shoulderPitch1;
+Servo shoulderPitch2;
+Servo shoulderYaw;
 Servo elbowServo;
 Servo forearmServo;
 Servo wristServo;
@@ -44,11 +45,12 @@ Servo ringFingerServo;
 Servo pinkyFingerServo;
 
 //Servo Pins
-int shoulder1Pin = 0;
-int shoulder2Pin = 0;
-int elbowPin = 0;
-int forearmPin = 0;
-int wristPin = 0;
+int pitchPin1 = 13;
+int pitchPin2 = 12;
+int yawPin = 11;
+int elbowPin = 10;
+int forearmPin = 9;
+int wristPin = 8;
 
 int thumbPin = 0;
 int pointerFingerPin = 0;
@@ -59,6 +61,16 @@ int pinkyFingerPin = 0;
 
 
 //=========================================  2.Radio setup
+#define CE_PIN   24
+#define CSN_PIN 25
+
+const byte thisSlaveAddress[5] = {'R','x','A','A','A'};
+
+RF24 radio(CE_PIN, CSN_PIN);
+
+int dataReceived[5]; // this must match dataToSend in the TX
+bool newData = false;
+
 //=========================================  3.Gyro setup
 Adafruit_MPU6050 mpu1;
 Adafruit_MPU6050 mpu2;
@@ -100,8 +112,9 @@ void setup() {
 }
 
 void loop() {
-  getGyroData();
-
+  //getGyroData();
+    getData();
+    showData();
 }
 //=========================================  4.Initialization (Homing)
 //=========================================  5.Internal Data acquisition
@@ -318,6 +331,26 @@ void getGyroData() {
     void  reset(void);
     Serial.println();
   }
+}
+
+void getData() {
+    if ( radio.available() ) {
+        radio.read( &dataReceived, sizeof(dataReceived) );
+        newData = true;
+    }
+}
+
+void showData() {
+    int i;
+    if (newData == true) {
+        Serial.print("Data received:\t");
+        for(i=0;i<sizeof(dataReceived);i++){
+        Serial.print(dataReceived[i]);
+        Serial.print("/t");
+        }
+        Serial.println();
+        newData = false;
+    }
 }
 
 void zeroSystem() {

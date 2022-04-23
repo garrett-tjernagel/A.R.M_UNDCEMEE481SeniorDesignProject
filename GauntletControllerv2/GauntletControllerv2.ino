@@ -91,13 +91,14 @@ const byte slaveAddress[5] = {'R', 'x', 'A', 'A', 'A'};
 
 RF24 radio(CE_PIN, CSN_PIN); // Create a Radio
 
-byte dataToSend[2] = {45, 45};
+int shoulderAngle1, shoulderAngle2, elbowAngle, forearmAngle, wristAngle=0;
+
+int dataToSend[5] = {shoulderAngle1, shoulderAngle2, elbowAngle, forearmAngle, wristAngle};
 
 //========================================= Configuration Variables
 int potPin=A0;
 int potUpperLim=180;
 int potLowerLim=45;
-
 
 
 //=========================================Setup
