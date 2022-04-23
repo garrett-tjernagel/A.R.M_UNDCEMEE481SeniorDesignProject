@@ -100,14 +100,14 @@ void setupRadio() {
   radio.openWritingPipe(slaveAddress);
 }
 
-int shoulderAngle1, shoulderAngle2, elbowAngle, forearmAngle, wristAngle=0;
+int shoulderPitch, shoulderYaw, elbowAngle, forearmRoll, wristPitch = 0;
 
-int dataToSend[5] = {shoulderAngle1, shoulderAngle2, elbowAngle, forearmAngle, wristAngle};
+int dataToSend[5] = {shoulderPitch, shoulderYaw, elbowAngle, forearmRoll, wristPitch};
 
 //========================================= Configuration Variables
-int potPin=A0;
-int potUpperLim=180;
-int potLowerLim=45;
+int potPin = A0;
+int potUpperLim = 180;
+int potLowerLim = 45;
 
 
 //=========================================Setup
@@ -130,13 +130,26 @@ void setup(void) {
 //=========================================
 //=========================================Main Loop
 void loop() {
+  int i;
   //getGyroAccel();
-  //getGyroData();
+  getGyroData();
   //getFlexData();
   //encoderRun();
-  //potRead();
-  sendData();
-  
+  potRead();
+  //sendData();
+
+  Serial.print("Datapack:\t");
+  Serial.print(dataToSend[0]);
+  Serial.print("\t");
+  Serial.print(dataToSend[1]);
+  Serial.print("\t");
+  Serial.print(dataToSend[2]);
+  Serial.print("\t");
+  Serial.print(dataToSend[3]);
+  Serial.print("\t");
+  Serial.print(dataToSend[4]);
+  Serial.print("\t >>>");
+  Serial.println(sizeof(dataToSend));
 }
 //=========================================
 //=========================================
@@ -170,60 +183,12 @@ void getFlexData() {
 //=========================================Potentiameter
 void potRead() {
   int potValue = analogRead(potPin);
-  elbowAngle=potValue;
+  dataToSend[2] = map(potValue, 0, 827, potLowerLim, potUpperLim);
   //Serial.print(potValue);
   //Serial.print("\t");
-  //Serial.println(map(potValue, 0, 827, potLowerLim, potUpperLim));
-  
+  //Serial.println(dataToSend[2]);
+
 }
-
-/*
-  //=========================================Encoder Data
-  void encoderRun() {
-  // Read the current state of CLK
-  currentStateCLK = digitalRead(CLK);
-
-  // If last and current state of CLK are different, then pulse occurred
-  // React to only 1 state change to avoid double count
-  if (currentStateCLK != lastStateCLK  && currentStateCLK == 1) {
-
-    // If the DT state is different than the CLK state then
-    // the encoder is rotating CCW so decrement
-    if (digitalRead(DT) != currentStateCLK) {
-      counter --;
-      currentDir = "CCW";
-    } else {
-      // Encoder is rotating CW so increment
-      counter ++;
-      currentDir = "CW";
-    }
-
-    Serial.print("Direction: ");
-    Serial.print(currentDir);
-    Serial.print(" | Counter: ");
-    Serial.println(counter);
-  }
-
-  // Remember last CLK state
-  lastStateCLK = currentStateCLK;
-
-  // Read the button state
-  int btnState = digitalRead(SW);
-
-  //If we detect LOW signal, button is pressed
-  if (btnState == LOW) {
-    //if 50ms have passed since last LOW pulse, it means that the
-    //button has been pressed, released and pressed again
-    if (millis() - lastButtonPress > 50) {
-      Serial.println("Button pressed!");
-    }
-
-    // Remember last button press event
-    lastButtonPress = millis();
-  }
-
-  }
-*/
 
 //=========================================Gyro Data
 void getGyroAccel() {
@@ -361,7 +326,7 @@ void getGyroData() {
     xrc2 = xrc2 + xrd2;
     yrc2 = yrc2 + yrd2;
     zrc2 = zrc2 + zrd2;
-
+/*
     Serial.print("Gyro1 X,Y,Z (rad): ");
     Serial.print(xrc1, 4);
     Serial.print("\t");
@@ -377,12 +342,16 @@ void getGyroData() {
     Serial.print("\t");
     Serial.print(zrc2, 4);
     Serial.print("\t");
-
+*/
     //Looping data points
+dataToSend[0]=(int)yrc1;
+dataToSend[1]=(int)xrc1;
+dataToSend[3]=(int)xrc2;
+dataToSend[4]=(int)yrc2;
 
     prevTime = newTime;
     void  reset(void);
-    Serial.println();
+    //Serial.println();
   }
 }
 
@@ -499,34 +468,34 @@ void setupGyros() {
       break;
 
       mpu2.setFilterBandwidth(MPU6050_BAND_21_HZ);
-  Serial.print("Filter bandwidth set to: ");
-  switch (mpu1.getFilterBandwidth()) {
-    case MPU6050_BAND_260_HZ:
-      Serial.println("260 Hz");
-      break;
-    case MPU6050_BAND_184_HZ:
-      Serial.println("184 Hz");
-      break;
-    case MPU6050_BAND_94_HZ:
-      Serial.println("94 Hz");
-      break;
-    case MPU6050_BAND_44_HZ:
-      Serial.println("44 Hz");
-      break;
-    case MPU6050_BAND_21_HZ:
-      Serial.println("21 Hz");
-      break;
-    case MPU6050_BAND_10_HZ:
-      Serial.println("10 Hz");
-      break;
-    case MPU6050_BAND_5_HZ:
-      Serial.println("5 Hz");
-      break;
-  }
+      Serial.print("Filter bandwidth set to: ");
+      switch (mpu1.getFilterBandwidth()) {
+        case MPU6050_BAND_260_HZ:
+          Serial.println("260 Hz");
+          break;
+        case MPU6050_BAND_184_HZ:
+          Serial.println("184 Hz");
+          break;
+        case MPU6050_BAND_94_HZ:
+          Serial.println("94 Hz");
+          break;
+        case MPU6050_BAND_44_HZ:
+          Serial.println("44 Hz");
+          break;
+        case MPU6050_BAND_21_HZ:
+          Serial.println("21 Hz");
+          break;
+        case MPU6050_BAND_10_HZ:
+          Serial.println("10 Hz");
+          break;
+        case MPU6050_BAND_5_HZ:
+          Serial.println("5 Hz");
+          break;
+      }
 
-  Serial.println("");
-  delay(100);
-}
+      Serial.println("");
+      delay(100);
+  }
 }
 
 
