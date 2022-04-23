@@ -91,6 +91,15 @@ const byte slaveAddress[5] = {'R', 'x', 'A', 'A', 'A'};
 
 RF24 radio(CE_PIN, CSN_PIN); // Create a Radio
 
+//=========================================Radio Setup
+void setupRadio() {
+  Serial.println("Starting Radio Tx");
+  radio.begin();
+  radio.setDataRate( RF24_250KBPS );
+  radio.setRetries(3, 5); // delay, count
+  radio.openWritingPipe(slaveAddress);
+}
+
 int shoulderAngle1, shoulderAngle2, elbowAngle, forearmAngle, wristAngle=0;
 
 int dataToSend[5] = {shoulderAngle1, shoulderAngle2, elbowAngle, forearmAngle, wristAngle};
@@ -115,23 +124,26 @@ void setup(void) {
     delay(10); // will pause Zero, Leonardo, etc until serial console opens (DELETE THIS FOR THE FINAL ITERATIONS)
 
   setupGyros();
-
+  setupRadio();
 }
 //=========================================
 //=========================================
 //=========================================Main Loop
 void loop() {
   //getGyroAccel();
-  getGyroData();
+  //getGyroData();
   //getFlexData();
   //encoderRun();
   //potRead();
+  sendData();
+  
 }
 //=========================================
 //=========================================
 //=========================================
 
 //=========================================Data packaging and transmission
+
 void sendData() {
   bool rslt;
   rslt = radio.write( &dataToSend, sizeof(dataToSend) );
@@ -158,9 +170,11 @@ void getFlexData() {
 //=========================================Potentiameter
 void potRead() {
   int potValue = analogRead(potPin);
-  Serial.print(potValue);
-  Serial.print("\t");
-  Serial.println(map(potValue, 0, 827, potLowerLim, potUpperLim));
+  elbowAngle=potValue;
+  //Serial.print(potValue);
+  //Serial.print("\t");
+  //Serial.println(map(potValue, 0, 827, potLowerLim, potUpperLim));
+  
 }
 
 /*
@@ -483,19 +497,39 @@ void setupGyros() {
     case MPU6050_BAND_5_HZ:
       Serial.println("5 Hz");
       break;
+
+      mpu2.setFilterBandwidth(MPU6050_BAND_21_HZ);
+  Serial.print("Filter bandwidth set to: ");
+  switch (mpu1.getFilterBandwidth()) {
+    case MPU6050_BAND_260_HZ:
+      Serial.println("260 Hz");
+      break;
+    case MPU6050_BAND_184_HZ:
+      Serial.println("184 Hz");
+      break;
+    case MPU6050_BAND_94_HZ:
+      Serial.println("94 Hz");
+      break;
+    case MPU6050_BAND_44_HZ:
+      Serial.println("44 Hz");
+      break;
+    case MPU6050_BAND_21_HZ:
+      Serial.println("21 Hz");
+      break;
+    case MPU6050_BAND_10_HZ:
+      Serial.println("10 Hz");
+      break;
+    case MPU6050_BAND_5_HZ:
+      Serial.println("5 Hz");
+      break;
   }
 
   Serial.println("");
   delay(100);
 }
-
-//=========================================Radio Setup
-void radioSetup() {
-  radio.begin();
-  radio.setDataRate( RF24_250KBPS );
-  radio.setRetries(3, 5); // delay, count
-  radio.openWritingPipe(slaveAddress);
 }
+
+
 
 /*
   void encoderSetup() {
