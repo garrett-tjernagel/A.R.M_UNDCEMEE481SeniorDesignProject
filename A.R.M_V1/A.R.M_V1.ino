@@ -5,7 +5,7 @@
   Partners: Branson Elliott and William Prody
 
   4/23/22 1:05pm added initial radio comms for ARM
-  3:53pm organized some code, added servo testing to get the initial servo limits found out. 
+  3:53pm organized some code, added servo testing to get the initial servo limits found out.
 
 */
 
@@ -60,6 +60,15 @@ int pointerFingerPin = 0;
 int middleFinerPin = 0;
 int ringFingerPin = 0;
 int pinkyFingerPin = 0;
+
+//Servo Limits
+int  wristUpperLim = 160;
+int  wristLowerLim = 0;
+
+int  forearmUpperLim = 180;
+int  forearmLowerLim = 0;
+
+
 
 
 
@@ -118,16 +127,16 @@ void setup() {
     delay(10); // will pause Zero, Leonardo, etc until serial console opens (DELETE THIS FOR THE FINAL ITERATIONS)
 
   //setupGyros();
-  //setupRadio();
-  setupServos();
+  setupRadio();
+  //setupServos();
 
 }
 
 void loop() {
   //getGyroData();
-  //getData();
-  //showData();
-  servoTest();
+  getData();
+  showData();
+  //servoTest();
 }
 
 //=========================================  4.Initialization (Homing)
@@ -151,30 +160,36 @@ void initializeServos() {
 
 //========================================= Servo Testing
 void servoTest() {
-  bool stopVar=true;
+  bool stopVar = true;
   Serial.println("Enter anything to begin servo testing.");
-  while(!Serial.available());
-  while(stopVar==true){
-  int i, upperLim, lowerLim;
-  upperLim = 120;
-  lowerLim = 60;
+  while (!Serial.available());
+  while (stopVar == true) {
+    int i, upperLim, lowerLim;
+    upperLim = 100;
+    lowerLim = 0;
 
-  for (i = lowerLim; i < upperLim; i++) {
-    wristServo.write(i);
-    delay(15);
+    for (i = lowerLim; i < upperLim; i++) {
+      elbowServo.write(i);
+      delay(20);
+    }
+    delay(200);
+    for (i = upperLim; i > lowerLim; --i) {
+      elbowServo.write(i);
+      delay(20);
+    }
+    delay(200);
   }
-  delay(100);
-  for (i = upperLim; i > lowerLim; --i) {
-    wristServo.write(i);
-    delay(15);
-  }
-  delay(100);
-}
 }
 
-void setupServos(){
-  wristServo.attach(wristPin); 
- 
+void setupServos() {
+  wristServo.attach(wristPin);
+  forearmServo.attach(forearmPin);
+  elbowServo.attach(elbowPin);
+  shoulderPitch1.attach(pitchPin1);
+  shoulderPitch2.attach(pitchPin2);
+  shoulderYaw.attach(yawPin);
+
+
 }
 void setupRadio() {
   Serial.println("SimpleRx Starting");
@@ -396,7 +411,7 @@ void getGyroData() {
     xrc2 = xrc2 + xrd2;
     yrc2 = yrc2 + yrd2;
     zrc2 = zrc2 + zrd2;
-
+/*
     Serial.print("Gyro1 X,Y,Z (rad): ");
     Serial.print(xrc1, 4);
     Serial.print("\t");
@@ -412,12 +427,12 @@ void getGyroData() {
     Serial.print("\t");
     Serial.print(zrc2, 4);
     Serial.print("\t");
-
+*/
     //Looping data points
 
     prevTime = newTime;
     void  reset(void);
-    Serial.println();
+    //Serial.println();
   }
 }
 
