@@ -105,6 +105,16 @@ const byte thisSlaveAddress[5] = {'R', 'x', 'A', 'A', 'A'};
 
 RF24 radio(CE_PIN, CSN_PIN);
 
+void setupRadio() {
+  Serial.println("SimpleRx Starting");
+  radio.begin();
+  radio.setDataRate( RF24_250KBPS );
+  radio.openReadingPipe(1, thisSlaveAddress);
+  radio.startListening();
+}
+
+
+
 int dataReceived[5]; // this must match dataToSend in the TX
 bool newData = false;
 
@@ -138,9 +148,9 @@ unsigned long deltaTime = 0;
 unsigned long prevTime = 0;
 
 
-int redLED = 38;
+int redLED = 46;
 int greenLED = 40;
-int blueLED = 42;
+int blueLED = 23;
 
 //===============================================
 //===============================================
@@ -156,14 +166,20 @@ void setup() {
   digitalWrite(blueLED, HIGH);
 
   setupGyros();
-  setupRadio();
+
+  Serial.println("SimpleRx Starting");
+  radio.begin();
+  radio.setDataRate( RF24_250KBPS );
+  radio.openReadingPipe(1, thisSlaveAddress);
+  radio.startListening();
+  
   //setupServos();
-  delay(100);
+  delay(10);
   digitalWrite(blueLED, LOW);
 }
 
 void loop() {
-  getGyroData();
+  //getGyroData();
   getData();
   showData();
   //servoTest();
@@ -225,13 +241,7 @@ void setupServos() {
 
 }
 
-void setupRadio() {
-  Serial.println("SimpleRx Starting");
-  radio.begin();
-  radio.setDataRate( RF24_250KBPS );
-  radio.openReadingPipe(1, thisSlaveAddress);
-  radio.startListening();
-}
+
 
 void setupGyros() {
   Serial.println("Adafruit MPU6050 test!");
@@ -490,11 +500,13 @@ void getData() {
   if ( radio.available() ) {
     radio.read( &dataReceived, sizeof(dataReceived) );
     newData = true;
-    digitalWrite(greenLED, HIGH);
-    digitalWrite(redLED, LOW);
+    //Serial.println("Good");
+    //digitalWrite(greenLED, HIGH);
+    //digitalWrite(redLED, LOW);
   } else {
-    digitalWrite(greenLED, LOW);
-    digitalWrite(redLED, HIGH);
+    //Serial.println("Bad");
+    //digitalWrite(greenLED, LOW);
+    //digitalWrite(redLED, HIGH);
   }
 
 }
@@ -515,8 +527,6 @@ void showData() {
     Serial.print("\t >>>");
     Serial.println(sizeof(dataReceived));
     newData = false;
-  }else{
-    Serial.print("No Data");
   }
 }
 //=========================================  7.Rudimentary PID Calculations for each servo

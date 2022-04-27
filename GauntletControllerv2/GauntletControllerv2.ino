@@ -124,13 +124,18 @@ void setup(void) {
   digitalWrite(blueLED, HIGH);
   //encoderSetup();
 
-  //Serial.begin(115200);
+  Serial.begin(115200);
   //while (!Serial)
   delay(10); // will pause Zero, Leonardo, etc until serial console opens (DELETE THIS FOR THE FINAL ITERATIONS)
 
   setupGyros();
-  setupRadio();
-  delay(100);
+  //setupRadio();
+   Serial.println("Starting Radio Tx");
+  radio.begin();
+  radio.setDataRate( RF24_250KBPS );
+  radio.setRetries(3, 5); // delay, count
+  radio.openWritingPipe(slaveAddress);
+  
   digitalWrite(blueLED, LOW);
 }
 
@@ -143,7 +148,7 @@ void loop() {
   potRead();
 
 
-  Serial.print("Datapack:\t");
+  Serial.print("Datapack GP:\t");
   Serial.print(dataToSend[0]);
   Serial.print("\t");
   Serial.print(dataToSend[1]);
@@ -156,7 +161,8 @@ void loop() {
   Serial.print("\t >>>");
   Serial.println(sizeof(dataToSend));
 
-
+  
+  
   sendData();
 }
 //=========================================
@@ -311,10 +317,10 @@ void getGyroData() {
         Serial.print("\t");
     */
     //Looping data points
-    dataToSend[0] = (int)yrc1;
-    dataToSend[1] = (int)xrc1;
-    dataToSend[3] = (int)xrc2;
-    dataToSend[4] = (int)yrc2;
+    dataToSend[0] = yrc1;
+    dataToSend[1] = xrc1;
+    dataToSend[3] = xrc2;
+    dataToSend[4] = yrc2;
 
     prevTime = newTime;
     void  reset(void);
@@ -332,15 +338,15 @@ void sendData() {
   if (rslt) {
     Serial.println("A.R.M Rx: Valid");
     //add led for good data
-    digitalWrite(greenLED, HIGH);
-    digitalWrite(redLED, LOW);
+    //digitalWrite(greenLED, HIGH);
+    //digitalWrite(redLED, LOW);
 
   }
   else {
     Serial.print("Tx failed\t");
     //add led for bad data here
-    digitalWrite(greenLED, LOW);
-    digitalWrite(redLED, HIGH);
+    //digitalWrite(greenLED, LOW);
+    //digitalWrite(redLED, HIGH);
   }
 }
 
@@ -466,7 +472,7 @@ void setupGyros() {
       }
 
       Serial.println("");
-      delay(100);
+      delay(10);
   }
 }
 
