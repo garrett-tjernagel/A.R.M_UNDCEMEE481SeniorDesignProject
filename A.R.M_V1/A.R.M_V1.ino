@@ -6,6 +6,7 @@
 
   4/23/22 1:05pm added initial radio comms for ARM
   3:53pm organized some code, added servo testing to get the initial servo limits found out.
+  4/26 added testing code for the servos + Servo limits
 
 */
 
@@ -75,26 +76,25 @@ int  shoulderYawLowerLim = 10;
 int  shoulderPitchUpperLim = 60;
 int  shoulderPitchLowerLim = 25;
 
-int thumbUpperLim=110;
-int thumbLowerLim=0;
+int thumbUpperLim = 110;
+int thumbLowerLim = 0;
 
-int pointerUpperLim=110;
-int pointerLowerLim=0;
+int pointerUpperLim = 110;
+int pointerLowerLim = 0;
 
-int middleUpperLim=110;
-int middleLowerLim=0;
+int middleUpperLim = 110;
+int middleLowerLim = 0;
 
-int ringUpperLim=0;
-int ringLowerLim=110;
+int ringUpperLim = 0;
+int ringLowerLim = 110;
 
-int pinkyUpperLim=0;
-int pinkyLowerLim=110;
+int pinkyUpperLim = 0;
+int pinkyLowerLim = 110;
 
 //servo Control
-int shoulderPitchAngle, shoulderYawAngle, elbowPitchAngle, forearmRollAngle, wristpitchAngle;
-
-
-
+// 0=Shoulder Pitch 1=Shoulder Yaw 2=Elbow Pitch 3=Forearm Roll 4=Wrist Pitch
+int servoCurrent[5];
+int servoTarget[5];
 
 
 //=========================================  2.Radio setup
@@ -126,51 +126,61 @@ float yrc2, yrd2 = 0;
 float zrc2, zrd2 = 0;
 
 //Gyro Offsets
-float x1RotOffset = 0.040768759;
-float y1RotOffset = -0.048155658;
-float z1RotOffset = -0.0491477;
+float x1RotOffset = 0.102321597;
+float y1RotOffset = -0.0483304;
+float z1RotOffset = 0.012257273;
 
-float x2RotOffset = -0.951493925;
-float y2RotOffset = 0.008503545;
-float z2RotOffset = -0.021624156;
+float x2RotOffset = 0.001032082;
+float y2RotOffset = 0.028035659;
+float z2RotOffset = -0.007918356;
 
 unsigned long deltaTime = 0;
 unsigned long prevTime = 0;
+
+
+int redLED = 38;
+int greenLED = 40;
+int blueLED = 42;
 
 //===============================================
 //===============================================
 //===============================================
 void setup() {
   Serial.begin(115200);
-  while (!Serial)
-    delay(10); // will pause Zero, Leonardo, etc until serial console opens (DELETE THIS FOR THE FINAL ITERATIONS)
+  //while (!Serial)
+  delay(10); // will pause Zero, Leonardo, etc until serial console opens (DELETE THIS FOR THE FINAL ITERATIONS)
 
-  //setupGyros();
+  pinMode(redLED, OUTPUT);
+  pinMode(blueLED, OUTPUT);
+  pinMode(greenLED, OUTPUT);
+  digitalWrite(blueLED, HIGH);
+
+  setupGyros();
   //setupRadio();
-  setupServos();
-
+  //setupServos();
+  delay(100);
+  digitalWrite(blueLED, LOW);
 }
 
 void loop() {
-  //getGyroData();
-  //getData();
-  //showData();
+  getGyroData();
+  getData();
+  showData();
   //servoTest();
-  servoManual();
+  //servoManual();
   /*
-    Serial.print("Datapack:\t");
-    Serial.print(dataReceived[0]);
-    Serial.print("\t");
-    Serial.print(dataReceived[1]);
-    Serial.print("\t");
-    Serial.print(dataReceived[2]);
-    Serial.print("\t");
-    Serial.print(dataReceived[3]);
-    Serial.print("\t");
-    Serial.print(dataReceived[4]);
-    Serial.print("\t >>>");
-    Serial.println(sizeof(dataReceived));
+    Serial.print("Angle Data:::Shoulder Pitch: ");
+    Serial.print(servoCurrent[0]);
+    Serial.print("\tShoulder Yaw: ");
+    Serial.print(servoCurrent[1]);
+    Serial.print("\tElbow Pitch: ");
+    Serial.print(servoCurrent[2]);
+    Serial.print("\tForearm Roll: ");
+    Serial.print(servoCurrent[3]);
+    Serial.print("\tWrist Pitch: ");
+    Serial.print(servoCurrent[4]);
   */
+  Serial.println();
 }
 //===============================================
 //===============================================
@@ -394,7 +404,7 @@ void serialFlush() {
 
 //=========================================  Setup Codes
 void setupServos() {
-  /*
+
   shoulderServoPitch1.write(25);
   shoulderServoPitch1.write(25);
   shoulderServoPitch1.attach(pitchPin1);
@@ -408,7 +418,7 @@ void setupServos() {
   forearmServo.write(10);
   delay(1);
   forearmServo.attach(forearmPin);
-  */
+
   wristServo.write(90);
   delay(1);
   wristServo.attach(wristPin);
@@ -428,6 +438,7 @@ void setupServos() {
   pinkyServo.write(180);
   delay(1);
   pinkyServo.attach(pinkyPin);
+
 }
 
 void setupRadio() {
@@ -570,6 +581,7 @@ void initializeServos() {
 
 //=========================================  5.Internal Data acquisition
 void getGyroData() {
+  //Wait 1.5 seconds before data aquisition
   if (millis() < 1500) {
     zeroSystem();
   } else {
@@ -598,7 +610,7 @@ void getGyroData() {
     gwzrs2 = g2.gyro.z + z2RotOffset;
 
     /*
-      Serial.print("Gyro W: X (rad/s): ");
+      Serial.print("Gyro W: X (rad/s): \t");
       Serial.print(gwxrs1, 10);
       Serial.print("\t");
       Serial.print(gwyrs1, 10);
@@ -656,6 +668,7 @@ void getGyroData() {
     xrc2 = xrc2 + xrd2;
     yrc2 = yrc2 + yrd2;
     zrc2 = zrc2 + zrd2;
+
     /*
         Serial.print("Gyro1 X,Y,Z (rad): ");
         Serial.print(xrc1, 4);
@@ -673,11 +686,18 @@ void getGyroData() {
         Serial.print(zrc2, 4);
         Serial.print("\t");
     */
-    //Looping data points
 
+    servoCurrent[0] = (int)( -1 * xrc2);
+    servoCurrent[1] = (int) (-1 * yrc2);
+    servoCurrent[2] = (int) (180 - (-1 * yrc1));
+    servoCurrent[3] = (int) (xrc1);
+    servoCurrent[4] = (int) (-1 * yrc1);
+
+
+    //Looping data points
     prevTime = newTime;
     void  reset(void);
-    //Serial.println();
+    Serial.println();
   }
 }
 
@@ -686,22 +706,30 @@ void getData() {
   if ( radio.available() ) {
     radio.read( &dataReceived, sizeof(dataReceived) );
     newData = true;
+    digitalWrite(greenLED, HIGH);
+    digitalWrite(redLED, LOW);
+  } else {
+    digitalWrite(greenLED, LOW);
+    digitalWrite(redLED, HIGH);
   }
+
 }
 
 void showData() {
 
   if (newData == true) {
-    Serial.print("Data received:\t");
+    Serial.print("Datapack:\t");
     Serial.print(dataReceived[0]);
-    Serial.print("/t");
+    Serial.print("\t");
     Serial.print(dataReceived[1]);
-    Serial.print("/t");
+    Serial.print("\t");
     Serial.print(dataReceived[2]);
-    Serial.print("/t");
+    Serial.print("\t");
     Serial.print(dataReceived[3]);
-    Serial.print("/t");
-    Serial.println(dataReceived[4]);
+    Serial.print("\t");
+    Serial.print(dataReceived[4]);
+    Serial.print("\t >>>");
+    Serial.println(sizeof(dataReceived));
     newData = false;
   }
 }

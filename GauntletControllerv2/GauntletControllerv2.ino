@@ -68,20 +68,7 @@ const int ringFingerPin = A3;
 const int pinkyFingerPin = A4;
 const int thumbPin = A5;
 
-int pfFlex;
-
-/*
-  //=========================================Encoder
-  #define CLK 11
-  #define DT 12
-  #define SW 13
-
-  int counter = 0;
-  int currentStateCLK;
-  int lastStateCLK;
-  String currentDir = "";
-  unsigned long lastButtonPress = 0;
-*/
+int pfFlex, tfFlex, mfFlex, rfFlex, pifFlex;
 
 //=========================================Datapack/Radio Declarations + Variables
 #define CE_PIN  7
@@ -90,15 +77,6 @@ int pfFlex;
 const byte slaveAddress[5] = {'R', 'x', 'A', 'A', 'A'};
 
 RF24 radio(CE_PIN, CSN_PIN); // Create a Radio
-
-//=========================================Radio Setup
-void setupRadio() {
-  Serial.println("Starting Radio Tx");
-  radio.begin();
-  radio.setDataRate( RF24_250KBPS );
-  radio.setRetries(3, 5); // delay, count
-  radio.openWritingPipe(slaveAddress);
-}
 
 int shoulderPitch, shoulderYaw, elbowAngle, forearmRoll, wristPitch = 0;
 
@@ -110,25 +88,52 @@ int potUpperLim = 180;
 int potLowerLim = 45;
 
 
+#define redLED 5
+#define greenLED 9
+#define blueLED 12
+
+void zeroSystem() {
+  //Gyro 1 (Shoulder)
+  float gwxrs1, gwyrs1, gwzrs1 = 0;
+  float gwxrms1, gwyrms1, gwzrms1 = 0;
+  unsigned long deltaTime, to, tc = 0;
+  float xrc1, xrd1 = 0;
+  float yrc1, yrd1 = 0;
+  float zrc1, zrd1 = 0;
+
+  //Wrist
+  float gwxrs2, gwyrs2, gwzrs2 = 0;
+  float gwxrms2, gwyrms2, gwzrms2 = 0;
+  float xrc2, xrd2 = 0;
+  float yrc2, yrd2 = 0;
+  float zrc2, zrd2 = 0;
+}
+
 //=========================================Setup
 //=========================================
 //=========================================
 void setup(void) {
   //Reset Variables
-  //Gyro 1 (Shoulder)
   zeroSystem();
+Serial.begin(115200);
+
+  pinMode(redLED, OUTPUT);
+  pinMode(blueLED, OUTPUT);
+  pinMode(greenLED, OUTPUT);
+
+  digitalWrite(blueLED, HIGH);
   //encoderSetup();
 
-  Serial.begin(115200);
-  while (!Serial)
-    delay(10); // will pause Zero, Leonardo, etc until serial console opens (DELETE THIS FOR THE FINAL ITERATIONS)
+  //Serial.begin(115200);
+  //while (!Serial)
+  delay(10); // will pause Zero, Leonardo, etc until serial console opens (DELETE THIS FOR THE FINAL ITERATIONS)
 
   setupGyros();
   setupRadio();
+  delay(100);
+  digitalWrite(blueLED, LOW);
 }
-//=========================================
-//=========================================
-//=========================================Main Loop
+
 void loop() {
   int i;
   //getGyroAccel();
@@ -136,48 +141,57 @@ void loop() {
   //getFlexData();
   //encoderRun();
   potRead();
+
+  
+    Serial.print("Datapack:\t");
+    Serial.print(dataToSend[0]);
+    Serial.print("\t");
+    Serial.print(dataToSend[1]);
+    Serial.print("\t");
+    Serial.print(dataToSend[2]);
+    Serial.print("\t");
+    Serial.print(dataToSend[3]);
+    Serial.print("\t");
+    Serial.print(dataToSend[4]);
+    Serial.print("\t >>>");
+    Serial.println(sizeof(dataToSend));
   
 
-  Serial.print("Datapack:\t");
-  Serial.print(dataToSend[0]);
-  Serial.print("\t");
-  Serial.print(dataToSend[1]);
-  Serial.print("\t");
-  Serial.print(dataToSend[2]);
-  Serial.print("\t");
-  Serial.print(dataToSend[3]);
-  Serial.print("\t");
-  Serial.print(dataToSend[4]);
-  Serial.print("\t >>>");
-  Serial.println(sizeof(dataToSend));
   sendData();
 }
 //=========================================
 //=========================================
 //=========================================
 
-//=========================================Data packaging and transmission
-
-void sendData() {
-  bool rslt;
-  rslt = radio.write( &dataToSend, sizeof(dataToSend) );
-
-  Serial.print("Data Sent");
-  if (rslt) {
-    //Serial.println("A.R.M Rx: Valid");
-  }
-  else {
-    Serial.print("Tx failed\t");
-  }
-}
-
 //=========================================Flex Sensor Data
 void getFlexData() {
-  pfFlex = analogRead(pointerFingerPin);
+  tfFlex = analogRead(thumbPin);
+  //tfFlex = map(pfFlex, 0, 1023, 0, 100);
+
+    pfFlex = analogRead(pointerFingerPin);
   //pfFlex = map(pfFlex, 0, 1023, 0, 100);
-  Serial.print("Pointer Finger Flex Percent: ");
+
+    mfFlex = analogRead(middleFingerPin);
+  //mfFlex = map(pfFlex, 0, 1023, 0, 100);
+
+    rfFlex = analogRead(ringFingerPin);
+  //rfFlex = map(pfFlex, 0, 1023, 0, 100);
+
+    pifFlex = analogRead(pinkyFingerPin);
+  //pifFlex = map(pfFlex, 0, 1023, 0, 100);
+  
+  Serial.print("Finger Flex::: Thumb:\t");
+  Serial.print(tfFlex);
+  Serial.print("\t");
   Serial.print(pfFlex);
-  //Serial.print("%");
+  Serial.print("\t");
+  Serial.print(mfFlex);
+  Serial.print("\t");
+  Serial.print(rfFlex);
+  Serial.print("\t");
+  Serial.print(pifFlex);
+  Serial.print("\t");
+
   Serial.println();
 }
 
@@ -192,54 +206,6 @@ void potRead() {
 }
 
 //=========================================Gyro Data
-void getGyroAccel() {
-  if (millis() < 1500) {
-    zeroSystem();
-  } else {
-    /* Get new sensor events with the readings */
-    sensors_event_t a1, g1, temp1;
-    sensors_event_t a2, g2, temp2;
-    mpu1.getEvent(&a1, &g1, &temp1);
-    mpu2.getEvent(&a2, &g2, &temp2);
-
-    //calculate average velocity between time samples
-    long newTime = millis();
-    deltaTime = (newTime - prevTime);
-    /*
-        Serial.print("\t");
-        Serial.print("System Time (ms:)");
-        Serial.print(deltaTime);
-        Serial.print("\t");
-    */
-
-    gwxrs1 = g1.gyro.x + x1RotOffset;
-    gwyrs1 = g1.gyro.y + y1RotOffset;
-    gwzrs1 = g1.gyro.z + z1RotOffset;
-
-    gwxrs2 = g2.gyro.x + x2RotOffset;
-    gwyrs2 = g2.gyro.y + y2RotOffset;
-    gwzrs2 = g2.gyro.z + z2RotOffset;
-
-
-    //Serial.print("Gyro W: X (rad/s): ");
-    Serial.print(gwxrs1, 10);
-    Serial.print("\t");
-    Serial.print(gwyrs1, 10);
-    Serial.print("\t");
-    Serial.print(gwzrs1, 10);
-    Serial.print("\t");
-
-    //Serial.print("Gyro2 W: X,Y,Z (rad/s): ");
-    //Serial.print("\t");
-    Serial.print(gwxrs2, 10);
-    Serial.print("\t");
-    Serial.print(gwyrs2, 10);
-    Serial.print("\t");
-    Serial.print(gwzrs2, 10);
-    Serial.println();
-  }
-}
-
 void getGyroData() {
   if (millis() < 1500) {
     zeroSystem();
@@ -327,28 +293,28 @@ void getGyroData() {
     xrc2 = xrc2 + xrd2;
     yrc2 = yrc2 + yrd2;
     zrc2 = zrc2 + zrd2;
-/*
-    Serial.print("Gyro1 X,Y,Z (rad): ");
-    Serial.print(xrc1, 4);
-    Serial.print("\t");
-    Serial.print(yrc1, 4);
-    Serial.print("\t");
-    Serial.print(zrc1, 4);
-    Serial.print("\t");
+    /*
+        Serial.print("Gyro1 X,Y,Z (rad): ");
+        Serial.print(xrc1, 4);
+        Serial.print("\t");
+        Serial.print(yrc1, 4);
+        Serial.print("\t");
+        Serial.print(zrc1, 4);
+        Serial.print("\t");
 
-    Serial.print("Gyro2 X,Y,Z (rad): ");
-    Serial.print(xrc2, 4);
-    Serial.print("\t");
-    Serial.print(yrc2, 4);
-    Serial.print("\t");
-    Serial.print(zrc2, 4);
-    Serial.print("\t");
-*/
+        Serial.print("Gyro2 X,Y,Z (rad): ");
+        Serial.print(xrc2, 4);
+        Serial.print("\t");
+        Serial.print(yrc2, 4);
+        Serial.print("\t");
+        Serial.print(zrc2, 4);
+        Serial.print("\t");
+    */
     //Looping data points
-dataToSend[0]=(int)yrc1;
-dataToSend[1]=(int)xrc1;
-dataToSend[3]=(int)xrc2;
-dataToSend[4]=(int)yrc2;
+    dataToSend[0] = (int)yrc1;
+    dataToSend[1] = (int)xrc1;
+    dataToSend[3] = (int)xrc2;
+    dataToSend[4] = (int)yrc2;
 
     prevTime = newTime;
     void  reset(void);
@@ -356,21 +322,26 @@ dataToSend[4]=(int)yrc2;
   }
 }
 
-void zeroSystem() {
-  //Gyro 1 (Shoulder)
-  float gwxrs1, gwyrs1, gwzrs1 = 0;
-  float gwxrms1, gwyrms1, gwzrms1 = 0;
-  unsigned long deltaTime, to, tc = 0;
-  float xrc1, xrd1 = 0;
-  float yrc1, yrd1 = 0;
-  float zrc1, zrd1 = 0;
+//=========================================Data transmission
 
-  //Wrist
-  float gwxrs2, gwyrs2, gwzrs2 = 0;
-  float gwxrms2, gwyrms2, gwzrms2 = 0;
-  float xrc2, xrd2 = 0;
-  float yrc2, yrd2 = 0;
-  float zrc2, zrd2 = 0;
+void sendData() {
+  bool rslt;
+  rslt = radio.write( &dataToSend, sizeof(dataToSend) );
+
+  //Serial.print("Data Sent");
+  if (rslt) {
+    //Serial.println("A.R.M Rx: Valid");
+    //add led for good data
+    digitalWrite(greenLED, HIGH);
+    digitalWrite(redLED, LOW);
+
+  }
+  else {
+    //Serial.print("Tx failed\t");
+    //add led for bad data here
+    digitalWrite(greenLED, LOW);
+    digitalWrite(redLED, HIGH);
+  }
 }
 
 //=========================================Gyro Setup
@@ -391,7 +362,7 @@ void setupGyros() {
     }
   }
   Serial.println("MPU6050 Found!\n Enter anything to begin >");
-  while (!Serial.available());
+  //while (!Serial.available());
 
   mpu1.setAccelerometerRange(MPU6050_RANGE_8_G);
   Serial.print("Accelerometer range set to: ");
@@ -499,19 +470,11 @@ void setupGyros() {
   }
 }
 
-
-
-/*
-  void encoderSetup() {
-  // Set encoder pins as inputs
-  pinMode(CLK, INPUT);
-  pinMode(DT, INPUT);
-  pinMode(SW, INPUT_PULLUP);
-
-  // Setup Serial Monitor
-  Serial.begin(9600);
-
-  // Read the initial state of CLK
-  lastStateCLK = digitalRead(CLK);
-  }
-*/
+//=========================================Radio Setup
+void setupRadio() {
+  Serial.println("Starting Radio Tx");
+  radio.begin();
+  radio.setDataRate( RF24_250KBPS );
+  radio.setRetries(3, 5); // delay, count
+  radio.openWritingPipe(slaveAddress);
+}
