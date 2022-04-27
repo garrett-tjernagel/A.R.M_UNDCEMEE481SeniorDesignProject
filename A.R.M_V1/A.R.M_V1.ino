@@ -31,19 +31,19 @@
 
 //=========================================Servo Things
 //Arm Servos
-Servo shoulderPitch1;
-Servo shoulderPitch2;
-Servo shoulderYaw;
+Servo shoulderServoPitch1;
+Servo shoulderServoPitch2;
+Servo shoulderServoYaw;
 Servo elbowServo;
 Servo forearmServo;
 Servo wristServo;
 
 //Hand Servos
 Servo thumbServo;
-Servo pointerFingerServo;
-Servo middleFingerServo;
-Servo ringFingerServo;
-Servo pinkyFingerServo;
+Servo pointerServo;
+Servo middleServo;
+Servo ringServo;
+Servo pinkyServo;
 
 //Servo Pins
 int pitchPin1 = 13;
@@ -52,21 +52,46 @@ int yawPin = 11;
 int elbowPin = 10;
 int forearmPin = 9;
 int wristPin = 8;
-int servoPins[6] = {pitchPin1, pitchPin2, yawPin, elbowPin, forearmPin, wristPin};
-int servoAngle;
 
-int thumbPin = 0;
-int pointerFingerPin = 0;
-int middleFinerPin = 0;
-int ringFingerPin = 0;
-int pinkyFingerPin = 0;
+int thumbPin = 4;
+int pointerPin = 7;
+int middlePin = 6;
+int ringPin = 5;
+int pinkyPin = 3;
 
 //Servo Limits
-int  wristUpperLim = 160;
-int  wristLowerLim = 0;
+int  wristPitchUpperLim = 160;
+int  wristPitchLowerLim = 100;
 
-int  forearmUpperLim = 180;
-int  forearmLowerLim = 0;
+int  forearmRollUpperLim = 180;
+int  forearmRollLowerLim = 0;
+
+int  elbowPitchUpperLim = 140;
+int  elbowPitchLowerLim = 10;
+
+int  shoulderYawUpperLim = 180;
+int  shoulderYawLowerLim = 10;
+
+int  shoulderPitchUpperLim = 60;
+int  shoulderPitchLowerLim = 25;
+
+int thumbUpperLim=110;
+int thumbLowerLim=0;
+
+int pointerUpperLim=110;
+int pointerLowerLim=0;
+
+int middleUpperLim=110;
+int middleLowerLim=0;
+
+int ringUpperLim=0;
+int ringLowerLim=110;
+
+int pinkyUpperLim=0;
+int pinkyLowerLim=110;
+
+//servo Control
+int shoulderPitchAngle, shoulderYawAngle, elbowPitchAngle, forearmRollAngle, wristpitchAngle;
 
 
 
@@ -112,87 +137,297 @@ float z2RotOffset = -0.021624156;
 unsigned long deltaTime = 0;
 unsigned long prevTime = 0;
 
-
+//===============================================
+//===============================================
+//===============================================
 void setup() {
   Serial.begin(115200);
   while (!Serial)
     delay(10); // will pause Zero, Leonardo, etc until serial console opens (DELETE THIS FOR THE FINAL ITERATIONS)
 
   //setupGyros();
-  setupRadio();
-  //setupServos();
+  //setupRadio();
+  setupServos();
 
 }
 
 void loop() {
   //getGyroData();
-  getData();
-  showData();
+  //getData();
+  //showData();
   //servoTest();
-
-  Serial.print("Datapack:\t");
-  Serial.print(dataReceived[0]);
-  Serial.print("\t");
-  Serial.print(dataReceived[1]);
-  Serial.print("\t");
-  Serial.print(dataReceived[2]);
-  Serial.print("\t");
-  Serial.print(dataReceived[3]);
-  Serial.print("\t");
-  Serial.print(dataReceived[4]);
-  Serial.print("\t >>>");
-  Serial.println(sizeof(dataReceived));
+  servoManual();
+  /*
+    Serial.print("Datapack:\t");
+    Serial.print(dataReceived[0]);
+    Serial.print("\t");
+    Serial.print(dataReceived[1]);
+    Serial.print("\t");
+    Serial.print(dataReceived[2]);
+    Serial.print("\t");
+    Serial.print(dataReceived[3]);
+    Serial.print("\t");
+    Serial.print(dataReceived[4]);
+    Serial.print("\t >>>");
+    Serial.println(sizeof(dataReceived));
+  */
 }
+//===============================================
+//===============================================
+//=============================================== Manual Testing
 
-//=========================================  4.Initialization (Homing)
-void initializeServos() {
-  delay(10);
-  shoulderPitch1.write(25);
-  shoulderPitch2.write(25);
-  delay(10);
-  shoulderYaw.write(90);
-  delay(10);
-  elbowServo.write(0);
-  delay(10);
-  forearmServo.write(0);
-  delay(10);
-  wristServo.write(90);
+
+void servoManual() {
+  int i;
+  int d = 1;
+
+  while (true) {
+    char servoChoice[2];
+
+    Serial.print("Select Servo and Direction \nEnter as to sequential characters.\n");
+    Serial.print("a > Shoulder Pitch\nb > Shoulder Yaw\nc > Elbow Pitch\nd > Forearm Roll\ne > Thumb\nf > Pointer\n g > Middle\nh >Ring\n i >Pinky");
+    Serial.print("\nu > Upper Limit\nl > Lower Limit\n ");
+    while (!Serial.available());
+    if (Serial.available() <= 2) {
+      servoChoice[0] = Serial.read();
+      delay(1);
+      servoChoice[1] = Serial.read();
+
+      if (servoChoice[0] == 'a') {
+        if (servoChoice[1] == 'u') {
+          Serial.print("\nMoving Shoulder Pitch to upper limit.\n");
+          for (i = shoulderPitchLowerLim; i < shoulderPitchUpperLim; i++) {
+            shoulderServoPitch1.write(i);
+            shoulderServoPitch2.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else if (servoChoice[1] == 'l') {
+          Serial.print("\nMoving Shoulder Pitch to lower limit.\n");
+          for (i = shoulderPitchUpperLim; i > shoulderPitchLowerLim; --i) {
+            shoulderServoPitch1.write(i);
+            shoulderServoPitch2.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else {
+          Serial.println("Unknown Input\n");
+        }
+      } else if (servoChoice[0] == 'b') {
+        if (servoChoice[1] == 'u') {
+          Serial.print("\nMoving Shoulder Yaw to upper limit.\n");
+          for (i = shoulderYawLowerLim; i < shoulderYawUpperLim; i++) {
+            shoulderServoYaw.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else if (servoChoice[1] == 'l') {
+          Serial.print("\nMoving Shoulder Yaw  to lower limit.\n");
+          for (i = shoulderYawUpperLim; i > shoulderYawLowerLim; --i) {
+            shoulderServoYaw.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else {
+          Serial.println("Unknown Input\n");
+        }
+      } else if (servoChoice[0] == 'c') {
+        if (servoChoice[1] == 'u') {
+          Serial.print("\nMoving Elbow pitch to upper limit.\n");
+          for (i = elbowPitchLowerLim; i < elbowPitchUpperLim; i++) {
+            elbowServo.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else if (servoChoice[1] == 'l') {
+          Serial.print("\nMoving Elbow pitch  lower limit.\n");
+          for (i = elbowPitchUpperLim; i > elbowPitchLowerLim; --i) {
+            elbowServo.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else {
+          Serial.println("Unknown Input\n");
+        }
+      } else if (servoChoice[0] == 'd') {
+        if (servoChoice[1] == 'u') {
+          Serial.print("\nMoving Forearm Roll to upper limit.\n");
+          for (i = forearmRollLowerLim; i < forearmRollUpperLim; i++) {
+            forearmServo.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else if (servoChoice[1] == 'l') {
+          Serial.print("\nMoving Forearm Roll to lower limit.\n");
+          for (i = forearmRollUpperLim; i > forearmRollLowerLim; --i) {
+            forearmServo.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else {
+          Serial.println("Unknown Input\n");
+        }
+      } else if (servoChoice[0] == 'e') {
+        if (servoChoice[1] == 'u') {
+          Serial.print("\nMoving Thumb to upper limit.\n");
+          for (i = thumbLowerLim; i < thumbUpperLim; i++) {
+            thumbServo.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else if (servoChoice[1] == 'l') {
+          Serial.print("\nMoving Thumbto lower limit.\n");
+          for (i = thumbUpperLim; i > thumbLowerLim; --i) {
+            thumbServo.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else {
+          Serial.println("Unknown Input\n");
+        }
+      } else if (servoChoice[0] == 'f') {
+        if (servoChoice[1] == 'u') {
+          Serial.print("\nMoving pointer to upper limit.\n");
+          for (i = pointerLowerLim; i < pointerUpperLim; i++) {
+            pointerServo.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else if (servoChoice[1] == 'l') {
+          Serial.print("\nMoving pointer to lower limit.\n");
+          for (i = pointerUpperLim; i > pointerLowerLim; --i) {
+            pointerServo.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else {
+          Serial.println("Unknown Input\n");
+        }
+      } else if (servoChoice[0] == 'g') {
+        if (servoChoice[1] == 'u') {
+          Serial.print("\nMoving middle to upper limit.\n");
+          for (i = middleLowerLim; i < middleUpperLim; i++) {
+            middleServo.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else if (servoChoice[1] == 'l') {
+          Serial.print("\nMoving middle to lower limit.\n");
+          for (i = middleUpperLim; i > middleLowerLim; --i) {
+            middleServo.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else {
+          Serial.println("Unknown Input\n");
+        }
+      } else if (servoChoice[0] == 'h') {
+        if (servoChoice[1] == 'u') {
+          Serial.print("\nMoving ring to upper limit.\n");
+          for (i = ringLowerLim; i > ringUpperLim; --i) {
+            ringServo.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else if (servoChoice[1] == 'l') {
+          Serial.print("\nMoving ring to lower limit.\n");
+          for (i = ringUpperLim; i < ringLowerLim; i++) {
+            ringServo.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else {
+          Serial.println("Unknown Input\n");
+        }
+      } else if (servoChoice[0] == 'i') {
+        if (servoChoice[1] == 'u') {
+          Serial.print("\nMoving pinky to upper limit.\n");
+          for (i = pinkyLowerLim; i > pinkyUpperLim; --i) {
+            pinkyServo.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else if (servoChoice[1] == 'l') {
+          Serial.print("\nMoving pinky to lower limit.\n");
+          for (i = pinkyUpperLim; i < pinkyLowerLim; i++) {
+            pinkyServo.write(i);
+            Serial.println(i);
+            delay(d);
+          }
+
+        } else {
+          Serial.println("Unknown Input\n");
+        }
+      } else {
+        Serial.println("\nUnknown Input");
+      }
+    } else {
+      Serial.println("\nUnknown Input");
+      serialFlush();
+    }
+  }
+
+
 }
-//=========================================  5.Internal Data acquisition
-//=========================================  6.External Controller data acquisition
-//=========================================  7.Rudimentary PID for each servo
-//=========================================  8.Servo movement assignment
-
-//========================================= Servo Testing
-void servoTest() {
-  bool stopVar = true;
-  Serial.println("Enter anything to begin servo testing.");
-  while (!Serial.available());
-  while (stopVar == true) {
-    int i, upperLim, lowerLim;
-    upperLim = 100;
-    lowerLim = 0;
-
-    for (i = lowerLim; i < upperLim; i++) {
-      elbowServo.write(i);
-      delay(20);
-    }
-    delay(200);
-    for (i = upperLim; i > lowerLim; --i) {
-      elbowServo.write(i);
-      delay(20);
-    }
-    delay(200);
+void serialFlush() {
+  while (Serial.available() > 0) {
+    char t = Serial.read();
   }
 }
 
+//=========================================  Setup Codes
 void setupServos() {
-  wristServo.attach(wristPin);
-  forearmServo.attach(forearmPin);
+  /*
+  shoulderServoPitch1.write(25);
+  shoulderServoPitch1.write(25);
+  shoulderServoPitch1.attach(pitchPin1);
+  shoulderServoPitch2.attach(pitchPin2);
+  shoulderServoYaw.write(10);
+  delay(1);
+  shoulderServoYaw.attach(yawPin);
+  elbowServo.write(0);
+  delay(1);
   elbowServo.attach(elbowPin);
-  shoulderPitch1.attach(pitchPin1);
-  shoulderPitch2.attach(pitchPin2);
-  shoulderYaw.attach(yawPin);
+  forearmServo.write(10);
+  delay(1);
+  forearmServo.attach(forearmPin);
+  */
+  wristServo.write(90);
+  delay(1);
+  wristServo.attach(wristPin);
+
+  thumbServo.write(0);
+  delay(1);
+  thumbServo.attach(thumbPin);
+  pointerServo.write(0);
+  delay(1);
+  pointerServo.attach(pointerPin);
+  middleServo.write(25);
+  delay(1);
+  middleServo.attach(middlePin);
+  ringServo.write(180);
+  delay(1);
+  ringServo.attach(ringPin);
+  pinkyServo.write(180);
+  delay(1);
+  pinkyServo.attach(pinkyPin);
 }
 
 void setupRadio() {
@@ -328,6 +563,12 @@ void setupGyros() {
   }
 }
 
+//=========================================  4.Initialization (Homing)
+void initializeServos() {
+
+}
+
+//=========================================  5.Internal Data acquisition
 void getGyroData() {
   if (millis() < 1500) {
     zeroSystem();
@@ -440,6 +681,7 @@ void getGyroData() {
   }
 }
 
+//=========================================  6.External Controller data acquisition
 void getData() {
   if ( radio.available() ) {
     radio.read( &dataReceived, sizeof(dataReceived) );
@@ -463,7 +705,11 @@ void showData() {
     newData = false;
   }
 }
+//=========================================  7.Rudimentary PID Calculations for each servo
 
+//=========================================  8.Servo movement assignment
+
+//=========================================  9. System Controls
 void zeroSystem() {
   //Gyro 1 (Shoulder)
   float gwxrs1, gwyrs1, gwzrs1 = 0;
