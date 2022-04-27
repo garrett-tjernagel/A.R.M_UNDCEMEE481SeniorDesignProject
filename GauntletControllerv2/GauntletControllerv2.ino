@@ -88,9 +88,9 @@ int potUpperLim = 180;
 int potLowerLim = 45;
 
 
-#define redLED 5
-#define greenLED 9
-#define blueLED 12
+int redLED = 5;
+int greenLED = 9;
+int blueLED = 12;
 
 void zeroSystem() {
   //Gyro 1 (Shoulder)
@@ -115,7 +115,7 @@ void zeroSystem() {
 void setup(void) {
   //Reset Variables
   zeroSystem();
-Serial.begin(115200);
+  Serial.begin(115200);
 
   pinMode(redLED, OUTPUT);
   pinMode(blueLED, OUTPUT);
@@ -142,20 +142,20 @@ void loop() {
   //encoderRun();
   potRead();
 
-  
-    Serial.print("Datapack:\t");
-    Serial.print(dataToSend[0]);
-    Serial.print("\t");
-    Serial.print(dataToSend[1]);
-    Serial.print("\t");
-    Serial.print(dataToSend[2]);
-    Serial.print("\t");
-    Serial.print(dataToSend[3]);
-    Serial.print("\t");
-    Serial.print(dataToSend[4]);
-    Serial.print("\t >>>");
-    Serial.println(sizeof(dataToSend));
-  
+
+  Serial.print("Datapack:\t");
+  Serial.print(dataToSend[0]);
+  Serial.print("\t");
+  Serial.print(dataToSend[1]);
+  Serial.print("\t");
+  Serial.print(dataToSend[2]);
+  Serial.print("\t");
+  Serial.print(dataToSend[3]);
+  Serial.print("\t");
+  Serial.print(dataToSend[4]);
+  Serial.print("\t >>>");
+  Serial.println(sizeof(dataToSend));
+
 
   sendData();
 }
@@ -168,18 +168,18 @@ void getFlexData() {
   tfFlex = analogRead(thumbPin);
   //tfFlex = map(pfFlex, 0, 1023, 0, 100);
 
-    pfFlex = analogRead(pointerFingerPin);
+  pfFlex = analogRead(pointerFingerPin);
   //pfFlex = map(pfFlex, 0, 1023, 0, 100);
 
-    mfFlex = analogRead(middleFingerPin);
+  mfFlex = analogRead(middleFingerPin);
   //mfFlex = map(pfFlex, 0, 1023, 0, 100);
 
-    rfFlex = analogRead(ringFingerPin);
+  rfFlex = analogRead(ringFingerPin);
   //rfFlex = map(pfFlex, 0, 1023, 0, 100);
 
-    pifFlex = analogRead(pinkyFingerPin);
+  pifFlex = analogRead(pinkyFingerPin);
   //pifFlex = map(pfFlex, 0, 1023, 0, 100);
-  
+
   Serial.print("Finger Flex::: Thumb:\t");
   Serial.print(tfFlex);
   Serial.print("\t");
@@ -330,14 +330,14 @@ void sendData() {
 
   //Serial.print("Data Sent");
   if (rslt) {
-    //Serial.println("A.R.M Rx: Valid");
+    Serial.println("A.R.M Rx: Valid");
     //add led for good data
     digitalWrite(greenLED, HIGH);
     digitalWrite(redLED, LOW);
 
   }
   else {
-    //Serial.print("Tx failed\t");
+    Serial.print("Tx failed\t");
     //add led for bad data here
     digitalWrite(greenLED, LOW);
     digitalWrite(redLED, HIGH);
