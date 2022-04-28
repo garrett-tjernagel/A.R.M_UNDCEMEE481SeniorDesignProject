@@ -115,7 +115,8 @@ void setupRadio() {
 
 
 
-int dataReceived[5]; // this must match dataToSend in the TX
+int dataReceived1[5]; // this must match dataToSend in the TX
+int dataReceived2[5];
 bool newData = false;
 
 //=========================================  3.Gyro setup
@@ -179,7 +180,7 @@ void setup() {
 }
 
 void loop() {
-  //getGyroData();
+  getGyroData();
   getData();
   showData();
   //servoTest();
@@ -498,7 +499,10 @@ void getGyroData() {
 //=========================================  6.External Controller data acquisition
 void getData() {
   if ( radio.available() ) {
-    radio.read( &dataReceived, sizeof(dataReceived) );
+    radio.read( &dataReceived1, sizeof(dataReceived1) );
+    if ( radio.available() ) {
+    radio.read( &dataReceived2, sizeof(dataReceived2) );
+    }
     newData = true;
     //Serial.println("Good");
     //digitalWrite(greenLED, HIGH);
@@ -514,18 +518,31 @@ void getData() {
 void showData() {
 
   if (newData == true) {
-    Serial.print("Datapack:\t");
-    Serial.print(dataReceived[0]);
+    Serial.print("Datapack1:\t");
+    Serial.print(dataReceived1[0]);
     Serial.print("\t");
-    Serial.print(dataReceived[1]);
+    Serial.print(dataReceived1[1]);
     Serial.print("\t");
-    Serial.print(dataReceived[2]);
+    Serial.print(dataReceived1[2]);
     Serial.print("\t");
-    Serial.print(dataReceived[3]);
+    Serial.print(dataReceived1[3]);
     Serial.print("\t");
-    Serial.print(dataReceived[4]);
+    Serial.print(dataReceived1[4]);
     Serial.print("\t >>>");
-    Serial.println(sizeof(dataReceived));
+    Serial.println(sizeof(dataReceived1));
+
+        Serial.print("Datapack2:\t");
+    Serial.print(dataReceived2[0]);
+    Serial.print("\t");
+    Serial.print(dataReceived2[1]);
+    Serial.print("\t");
+    Serial.print(dataReceived2[2]);
+    Serial.print("\t");
+    Serial.print(dataReceived2[3]);
+    Serial.print("\t");
+    Serial.print(dataReceived2[4]);
+    Serial.print("\t >>>");
+    Serial.println(sizeof(dataReceived2));
     newData = false;
   }
 }
