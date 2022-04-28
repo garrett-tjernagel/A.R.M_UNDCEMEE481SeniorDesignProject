@@ -142,7 +142,7 @@ void loop() {
   //encoderRun();
   potRead();
 
-  /*
+  
     Serial.print("Datapack GP:\t");
     Serial.print(dataToSend1[0]);
     Serial.print("\t");
@@ -154,8 +154,8 @@ void loop() {
     Serial.print("\t");
     Serial.print(dataToSend1[4]);
     Serial.print("\t >>>");
-    Serial.println(sizeof(dataToSend1));
-  */
+    Serial.print(sizeof(dataToSend1));
+  
   Serial.print("Datapack2:\t");
   Serial.print(dataToSend2[0]);
   Serial.print("\t");

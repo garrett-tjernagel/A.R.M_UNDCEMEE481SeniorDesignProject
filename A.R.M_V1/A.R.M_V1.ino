@@ -3,17 +3,13 @@
   UND CEM EE480-481 SP22 Senior Design Capstone Project
   Augmented Robotic Manipulator (A.R.M)
   Partners: Branson Elliott and William Prody
-
   4/23/22 1:05pm added initial radio comms for ARM
   3:53pm organized some code, added servo testing to get the initial servo limits found out.
   4/26 added testing code for the servos + Servo limits
-
 */
 
 //=========================================Sources, Inspiration, and Links
 /*
-
-
 */
 //=========================================Libraries
 //Gyro Stuff
@@ -176,7 +172,7 @@ void setup() {
   radio.openReadingPipe(1, thisSlaveAddress);
   radio.startListening();
 
-  //setupServos();
+  setupServos();
   delay(10);
   digitalWrite(blueLED, LOW);
 }
@@ -185,7 +181,7 @@ void loop() {
   //getGyroData();
   getData();
   showData();
-  //stinkyPID();
+  stinkyPID();
 
   //servoTest();
   //servoManual();
@@ -206,6 +202,10 @@ void loop() {
 //===============================================
 //===============================================
 //=============================================== Manual Testing
+void test() {
+
+}
+
 
 //=========================================  Setup Codes
 void setupServos() {
@@ -416,7 +416,6 @@ void getGyroData() {
       Serial.print("\t");
       Serial.print(gwzrs1, 10);
       Serial.print("\t");
-
       Serial.print("Gyro2 W: X,Y,Z (rad/s): ");
       Serial.print("\t");
       Serial.print(gwxrs2, 10);
@@ -442,7 +441,6 @@ void getGyroData() {
       Serial.print("\t");
       Serial.print(gwzrms1, 10);
       Serial.print("\t");
-
       Serial.print("Gyro2 W: X (rad/ms): ");
       Serial.print(gwxrms2, 10);
       Serial.print("\t");
@@ -476,7 +474,6 @@ void getGyroData() {
         Serial.print("\t");
         Serial.print(zrc1, 4);
         Serial.print("\t");
-
         Serial.print("Gyro2 X,Y,Z (rad): ");
         Serial.print(xrc2, 4);
         Serial.print("\t");
@@ -537,36 +534,36 @@ void showData() {
 
   if (newData == true) {
 
+    /*
+        Serial.print("Datapack1:\t");
+        Serial.print(dataPackGyro[0]);
+        Serial.print("\t");
+        Serial.print(dataPackGyro[1]);
+        Serial.print("\t");
+        Serial.print(dataPackGyro[2]);
+        Serial.print("\t");
+        Serial.print(dataPackGyro[3]);
+        Serial.print("\t");
+        Serial.print(dataPackGyro[4]);
+        Serial.print("\t >>>");
+        Serial.print(sizeof(dataReceived));
 
-    Serial.print("Datapack1:\t");
-    Serial.print(dataPackGyro[0]);
-    Serial.print("\t");
-    Serial.print(dataPackGyro[1]);
-    Serial.print("\t");
-    Serial.print(dataPackGyro[2]);
-    Serial.print("\t");
-    Serial.print(dataPackGyro[3]);
-    Serial.print("\t");
-    Serial.print(dataPackGyro[4]);
-    Serial.print("\t >>>");
-    Serial.print(sizeof(dataReceived));
 
+        Serial.print("\tDatapack1:\t");
+        Serial.print(dataPackHand[0]);
+        Serial.print("\t");
+        Serial.print(dataPackHand[1]);
+        Serial.print("\t");
+        Serial.print(dataPackHand[2]);
+        Serial.print("\t");
+        Serial.print(dataPackHand[3]);
+        Serial.print("\t");
+        Serial.print(dataPackHand[4]);
+        Serial.print("\t >>>");
+        Serial.print(sizeof(dataReceived));
 
-    Serial.print("\tDatapack1:\t");
-    Serial.print(dataPackHand[0]);
-    Serial.print("\t");
-    Serial.print(dataPackHand[1]);
-    Serial.print("\t");
-    Serial.print(dataPackHand[2]);
-    Serial.print("\t");
-    Serial.print(dataPackHand[3]);
-    Serial.print("\t");
-    Serial.print(dataPackHand[4]);
-    Serial.print("\t >>>");
-    Serial.print(sizeof(dataReceived));
-
-    Serial.println();
-
+        Serial.println();
+    */
     newData = false;
   }
 }
@@ -579,113 +576,122 @@ void stinkyPID() {
   servoTarget[3] = servoCurrent[3] - dataPackGyro[3];
   servoTarget[4] = servoCurrent[4] - dataPackGyro[4];
 
+
+  //Shoulder Pitch//
+  //Serial.print(servoCurrent[0]);
+  //Serial.print("\t");
+  //Serial.print(dataPackGyro[0]);
+  //Serial.print("\t");
+  //Serial.print(servoTarget[0]);
+  //Serial.print("\t");
+  if (servoTarget[0] > 0) {
+    //Serial.print("SP: Go Up\t");
+  } else if (servoTarget[0] < 0) {
+    //Serial.print("SP: Go Down\t");
+  }
+  //Shoulder Yaw
+  //Serial.print(servoCurrent[1]);
+  //Serial.print("\t");
+  //Serial.print(dataPackGyro[1]);
+  //Serial.print("\t");
+  //Serial.print(servoTarget[1]);
+  //Serial.print("\t");
+  if (servoTarget[1] > 0) {
+    //Serial.print("SY: Go down\t");
+  } else if (servoTarget[1] < 0) {
+    //Serial.print("SY: Go Up\t");
+  }
+
   /*
+  //Elbow Pitch
+  //Serial.print(servoCurrent[2]);
+  //Serial.print("\t");
+  //Serial.print(dataPackGyro[2]);
+  //Serial.print("\t");
+  //Serial.print(servoTarget[2]);
+  //Serial.print("\t");
+  Serial.print(-1 * servoTarget[2]);
+  Serial.print("\t");
+  Serial.print(servoCurrent[2]);
+  Serial.print("\t");
+  Serial.print(dataPackGyro[2]);
+  Serial.print("\t");
+  if (servoTarget[2] > 0) {
+    Serial.print("EP: Go Up\t");
+    elbowServo.write(180-(-1 * servoTarget[2]));
+  } else if (servoTarget[2] < 0) {
+    Serial.print("EP: Go Down\t");
+    elbowServo.write(180-(-1 * servoTarget[2]));
+  }
+*/
+  
+  //Forearm Roll
+  //Serial.print(servoCurrent[3]);
+  //Serial.print("\t");
+  //Serial.print(dataPackGyro[3]);
+  //Serial.print("\t");
+  //Serial.print(servoTarget[3]);
+  //Serial.print("\t");
+  if (servoTarget[3] > 0) {
+    //Serial.print("FR: Go Up\t");
+    forearmServo.write(servoTarget[3]);
+  } else if (servoTarget[3] < 0) {
+    //Serial.print("FR: Go Down\t");
+    forearmServo.write(servoTarget[3]);
+  }
+  /*
+       //Wrist Pitch
+     Serial.print(servoCurrent[4]);
+     Serial.print("\t");
+     Serial.print(dataPackGyro[4]);
+     Serial.print("\t");
+     Serial.print(servoTarget[4]);
+     Serial.print("\t");
+     if (servoTarget[4] > 0) {
+       Serial.print("WP: Go Up\t");
+     } else if (servoTarget[4] < 0) {
+       Serial.print("WP: Go Down\t");
+     }
 
-    //Shoulder Pitch//
 
-    //Serial.print(servoCurrent[0]);
-    //Serial.print("\t");
-    //Serial.print(dataPackGyro[0]);
-    //Serial.print("\t");
-    //Serial.print(servoTarget[0]);
-    //Serial.print("\t");
-    if (servoTarget[0] > 0) {
-      Serial.print("SP: Go Up\t");
-    } else if (servoTarget[0] < 0) {
-      Serial.print("SP: Go Down\t");
+    //Thumb
+    if (dataPackHand[0] > 90) {
+     Serial.print("Thumb Flexed\t");
+    } else if (dataPackHand[0] < 90) {
+     Serial.print("Thumb Soft\t");
     }
 
-
-    //Shoulder Yaw
-    //Serial.print(servoCurrent[1]);
-    //Serial.print("\t");
-    //Serial.print(dataPackGyro[1]);
-    //Serial.print("\t");
-    //Serial.print(servoTarget[1]);
-    //Serial.print("\t");
-    if (servoTarget[1] > 0) {
-      Serial.print("SY: Go down\t");
-    } else if (servoTarget[1] < 0) {
-      Serial.print("SY: Go Up\t");
+    //Pointer
+    if (dataPackHand[1] > 90) {
+     Serial.print("Pointer Flexed\t");
+    } else if (dataPackHand[1] < 90) {
+     Serial.print("Pointer Soft\t");
     }
 
-    //Elbow Pitch
-    //Serial.print(servoCurrent[2]);
-    //Serial.print("\t");
-    //Serial.print(dataPackGyro[2]);
-    //Serial.print("\t");
-    //Serial.print(servoTarget[2]);
-    //Serial.print("\t");
-    if (servoTarget[2] > 0) {
-      Serial.print("EP: Go Up\t");
-    } else if (servoTarget[2] < 0) {
-      Serial.print("EP: Go Down\t");
+    //Middle
+    if (dataPackHand[2] > 90) {
+     Serial.print("Middle Flexed\t");
+    } else if (dataPackHand[2] < 90) {
+     Serial.print("MIddle Soft\t");
     }
 
-      //Forearm Roll
-    //Serial.print(servoCurrent[3]);
-    //Serial.print("\t");
-    //Serial.print(dataPackGyro[3]);
-    //Serial.print("\t");
-    //Serial.print(servoTarget[3]);
-    //Serial.print("\t");
-    if (servoTarget[3] > 0) {
-      Serial.print("FR: Go Up\t");
-    } else if (servoTarget[3] < 0) {
-      Serial.print("FR: Go Down\t");
+    //Ring
+    if (dataPackHand[3] > 90) {
+     Serial.print("Ring Flexed\t");
+    } else if (dataPackHand[3] < 90) {
+     Serial.print("Ring Soft\t");
     }
 
-    /*
-      //Wrist Pitch
-    Serial.print(servoCurrent[4]);
-    Serial.print("\t");
-    Serial.print(dataPackGyro[4]);
-    Serial.print("\t");
-    Serial.print(servoTarget[4]);
-    Serial.print("\t");
-    if (servoTarget[4] > 0) {
-      Serial.print("WP: Go Up\t");
-    } else if (servoTarget[4] < 0) {
-      Serial.print("WP: Go Down\t");
+    //Pinky
+    if (dataPackHand[4] > 90) {
+     Serial.print("Pinky Flexed\t");
+    } else if (dataPackHand[4] < 90) {
+     Serial.print("Pinky Soft\t");
+    }
   */
-
-  //Thumb
-  if (dataPackHand[0] > 90) {
-    Serial.print("Thumb Flexed\t");
-  } else if (dataPackHand[0] < 90) {
-    Serial.print("Thumb Soft\t");
-  }
-
-  //Pointer
-  if (dataPackHand[1] > 90) {
-    Serial.print("Pointer Flexed\t");
-  } else if (dataPackHand[1] < 90) {
-    Serial.print("Pointer Soft\t");
-  }
-
-  //Middle
-  if (dataPackHand[2] > 90) {
-    Serial.print("Middle Flexed\t");
-  } else if (dataPackHand[2] < 90) {
-    Serial.print("MIddle Soft\t");
-  }
-
-  //Ring
-  if (dataPackHand[3] > 90) {
-    Serial.print("Ring Flexed\t");
-  } else if (dataPackHand[3] < 90) {
-    Serial.print("Ring Soft\t");
-  }
-
-  //Pinky
-  if (dataPackHand[4] > 90) {
-    Serial.print("Pinky Flexed\t");
-  } else if (dataPackHand[4] < 90) {
-    Serial.print("Pinky Soft\t");
-  }
-
   Serial.println();
 }
+
 
 
 //=========================================  8.Servo movement assignment
