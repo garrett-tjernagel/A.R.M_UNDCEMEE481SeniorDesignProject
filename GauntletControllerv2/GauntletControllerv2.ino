@@ -79,9 +79,11 @@ const byte slaveAddress[5] = {'R', 'x', 'A', 'A', 'A'};
 RF24 radio(CE_PIN, CSN_PIN); // Create a Radio
 
 int shoulderPitch, shoulderYaw, elbowAngle, forearmRoll, wristPitch = 0;
+int pack1 = 1;
+int pack2 = 2;
 
-int dataToSend1[5] = {shoulderPitch, shoulderYaw, elbowAngle, forearmRoll, wristPitch};
-int dataToSend2[5] = {tfFlex, pfFlex, mfFlex, rfFlex, pifFlex};
+int dataToSend1[6] = {shoulderPitch, shoulderYaw, elbowAngle, forearmRoll, wristPitch, pack1};
+int dataToSend2[6] = {tfFlex, pfFlex, mfFlex, rfFlex, pifFlex, pack2};
 
 //========================================= Configuration Variables
 int potPin = A11;
@@ -164,6 +166,8 @@ void loop() {
   Serial.print(dataToSend2[3]);
   Serial.print("\t");
   Serial.print(dataToSend2[4]);
+  Serial.print("\t");
+  Serial.print(dataToSend2[5]);
   Serial.print("\t >>>");
   Serial.println(sizeof(dataToSend2));
 
@@ -178,19 +182,19 @@ void loop() {
 //=========================================Flex Sensor Data
 void getFlexData() {
   tfFlex = analogRead(thumbPin);
-  //tfFlex = map(pfFlex, 0, 1023, 0, 100);
+  tfFlex = map(tfFlex, 0, 1023, 0, 100);
 
   pfFlex = analogRead(pointerFingerPin);
-  //pfFlex = map(pfFlex, 0, 1023, 0, 100);
+  pfFlex = map(pfFlex, 0, 1023, 0, 100);
 
   mfFlex = analogRead(middleFingerPin);
-  //mfFlex = map(pfFlex, 0, 1023, 0, 100);
+  mfFlex = map(mfFlex, 0, 1023, 0, 100);
 
   rfFlex = analogRead(ringFingerPin);
-  //rfFlex = map(pfFlex, 0, 1023, 0, 100);
+  rfFlex = map(rfFlex, 0, 1023, 0, 100);
 
   pifFlex = analogRead(pinkyFingerPin);
-  //pifFlex = map(pfFlex, 0, 1023, 0, 100);
+  pifFlex = map(pifFlex, 0, 1023, 0, 100);
 
   /*
     Serial.print("Finger Flex::: Thumb:\t");
@@ -206,11 +210,13 @@ void getFlexData() {
     Serial.print("\t");
   */
 
-  dataToSend2[0] = tfFlex;
-  dataToSend2[1] = pfFlex;
+  //dataToSend2[1] = tfFlex;
+  //dataToSend2[0] = pfFlex;
+  dataToSend2[1] = 0;
+  dataToSend2[0] = 0;
   dataToSend2[2] = mfFlex;
-  dataToSend2[3] = rfFlex;
-  dataToSend2[4] = pifFlex;
+  dataToSend2[4] = rfFlex;
+  dataToSend2[3] = pifFlex;
 
   //Serial.println();
 }
@@ -354,25 +360,24 @@ void sendData() {
     //add led for good data
     //digitalWrite(greenLED, HIGH);
     //digitalWrite(redLED, LOW);
-    delay(1);
+    
     rslt2 = radio.write( &dataToSend2, sizeof(dataToSend2) );
     if (rslt2) {
       Serial.print("A.R.M Rx 2: Valid\t");
       //add led for good data
       //digitalWrite(greenLED, HIGH);
       //digitalWrite(redLED, LOW);
-
-    }
-    else {
+    } else {
       //Serial.print("Tx failed\t");
       //add led for bad data here
       //digitalWrite(greenLED, LOW);
       //digitalWrite(redLED, HIGH);
     }
-  }
-  Serial.println();
 
+    Serial.println();
+  }
 }
+
 //=========================================Gyro Setup
 void setupGyros() {
   Serial.println("Adafruit MPU6050 test!");
