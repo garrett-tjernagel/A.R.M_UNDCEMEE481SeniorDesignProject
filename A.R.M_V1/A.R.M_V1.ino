@@ -6,10 +6,18 @@
   4/23/22 1:05pm added initial radio comms for ARM
   3:53pm organized some code, added servo testing to get the initial servo limits found out.
   4/26 added testing code for the servos + Servo limits
+  5/2 adjusted code for the design expo, sorry the notes were not good.
 */
 
 //=========================================Sources, Inspiration, and Links
 /*
+     https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7309037/
+  https://forum.arduino.cc/t/simple-nrf24l01-2-4ghz-transceiver-demo/405123/2
+  https://www.instructables.com/How-to-use-a-Flex-Sensor-Arduino-Tutorial/
+  https://adafruit.github.io/Adafruit_MPU6050/html/class_adafruit___m_p_u6050.html#a64e6b74741d31138fb60f14ec2e7d9c1
+  https://arduino.stackexchange.com/questions/86031/adafruit-mpu-6050-and-adafruit-i2c-multiplexer
+  https://forum.arduino.cc/t/integration-of-acceleration/158296/10
+  https://forum.arduino.cc/t/measuring-time/96602/4
 */
 //=========================================Libraries
 //Gyro Stuff
@@ -122,9 +130,10 @@ Adafruit_MPU6050 mpu1;
 Adafruit_MPU6050 mpu2;
 
 //Gyro Number Containers
-float gwxrs1, gwyrs1, gwzrs1 = 0;
-float gwxrms1, gwyrms1, gwzrms1 = 0;
-float xrc1, xrd1 = 0;
+
+float gwxrs1, gwyrs1, gwzrs1 = 0;//gw(,y,z)xrs1: gyroscope 1 omega (x,y,z)-axis radians per second
+float gwxrms1, gwyrms1, gwzrms1 = 0; //gw(x,y,z)rms1: gyroscope 1 omega (x,y,z)-axis radians per milisecond
+float xrc1, xrd1 = 0;//xrd1: gyroscope 1 (x,y,z)-axis radians displacement current/displaced
 float yrc1, yrd1 = 0;
 float zrc1, zrd1 = 0;
 
@@ -181,8 +190,7 @@ void loop() {
   //getGyroData();
   getData();
   showData();
-  stinkyPID();
-
+  PID();
   //servoTest();
   //servoManual();
   /*
@@ -201,11 +209,6 @@ void loop() {
 }
 //===============================================
 //===============================================
-//=============================================== Manual Testing
-void test() {
-
-}
-
 
 //=========================================  Setup Codes
 void setupServos() {
@@ -217,9 +220,11 @@ void setupServos() {
   shoulderServoYaw.write(10);
   delay(1);
   shoulderServoYaw.attach(yawPin);
-  elbowServo.write(0);
-  delay(1);
+  
   elbowServo.attach(elbowPin);
+  delay(1);
+  elbowServo.write(10);
+  
   forearmServo.write(10);
   delay(1);
   forearmServo.attach(forearmPin);
@@ -227,22 +232,23 @@ void setupServos() {
   wristServo.write(90);
   delay(1);
   wristServo.attach(wristPin);
-
-  thumbServo.write(0);
-  delay(1);
-  thumbServo.attach(thumbPin);
-  pointerServo.write(0);
-  delay(1);
-  pointerServo.attach(pointerPin);
-  middleServo.write(25);
-  delay(1);
-  middleServo.attach(middlePin);
-  ringServo.write(180);
-  delay(1);
-  ringServo.attach(ringPin);
-  pinkyServo.write(180);
-  delay(1);
-  pinkyServo.attach(pinkyPin);
+  /*
+    thumbServo.write(0);
+    delay(1);
+    thumbServo.attach(thumbPin);
+    pointerServo.write(0);
+    delay(1);
+    pointerServo.attach(pointerPin);
+    middleServo.write(25);
+    delay(1);
+    middleServo.attach(middlePin);
+    ringServo.write(180);
+    delay(1);
+    ringServo.attach(ringPin);
+    pinkyServo.write(180);
+    delay(1);
+    pinkyServo.attach(pinkyPin);
+  */
 
 }
 
@@ -501,7 +507,7 @@ void getGyroData() {
 void getData() {
   if ( radio.available() ) {
     radio.read( &dataReceived, sizeof(dataReceived) );
-    delay(1);
+    //delay(1);
     if (dataReceived[5] == 1) {
       dataPackGyro[0] = dataReceived[0];
       dataPackGyro[1] = dataReceived[1];
@@ -568,15 +574,20 @@ void showData() {
   }
 }
 //=========================================  7.Rudimentary PID Calculations for each servo
-void stinkyPID() {
+void PID() {
 
   servoTarget[0] = servoCurrent[0] - dataPackGyro[0];
   servoTarget[1] = servoCurrent[1] - dataPackGyro[1];
   servoTarget[2] = servoCurrent[2] - dataPackGyro[2];
   servoTarget[3] = servoCurrent[3] - dataPackGyro[3];
   servoTarget[4] = servoCurrent[4] - dataPackGyro[4];
+elbowServo.write(180 - (-1 * servoTarget[2]));
+//forearmServo.write(servoTarget[3]);
 
 
+
+  //Simple Movement Control Loop
+/*
   //Shoulder Pitch//
   //Serial.print(servoCurrent[0]);
   //Serial.print("\t");
@@ -584,10 +595,10 @@ void stinkyPID() {
   //Serial.print("\t");
   //Serial.print(servoTarget[0]);
   //Serial.print("\t");
-  if (servoTarget[0] > 0) {
-    //Serial.print("SP: Go Up\t");
-  } else if (servoTarget[0] < 0) {
-    //Serial.print("SP: Go Down\t");
+  if ((servoTarget[0] > shoulderPitchLowerLim) and )(servoTarget[0] < shoulderPitchUpperLim) {
+    //Serial.print("SP: Good");
+    shoulderServoPitch1.write(servoTarget[0]);
+    shoulderServoPitch2.write(servoTarget[0]);
   }
   //Shoulder Yaw
   //Serial.print(servoCurrent[1]);
@@ -596,13 +607,12 @@ void stinkyPID() {
   //Serial.print("\t");
   //Serial.print(servoTarget[1]);
   //Serial.print("\t");
-  if (servoTarget[1] > 0) {
-    //Serial.print("SY: Go down\t");
-  } else if (servoTarget[1] < 0) {
-    //Serial.print("SY: Go Up\t");
+  if ((servoTarget[1] > shoulderYawLowerLim) and(servoTarget[1] < shoulderYawUpperLim)) {
+    //Serial.print("SY: Good\t");
+  shoulderServoYaw.write(servoTarget[1]);
   }
 
-  /*
+
   //Elbow Pitch
   //Serial.print(servoCurrent[2]);
   //Serial.print("\t");
@@ -610,21 +620,12 @@ void stinkyPID() {
   //Serial.print("\t");
   //Serial.print(servoTarget[2]);
   //Serial.print("\t");
-  Serial.print(-1 * servoTarget[2]);
-  Serial.print("\t");
-  Serial.print(servoCurrent[2]);
-  Serial.print("\t");
-  Serial.print(dataPackGyro[2]);
-  Serial.print("\t");
-  if (servoTarget[2] > 0) {
-    Serial.print("EP: Go Up\t");
-    elbowServo.write(180-(-1 * servoTarget[2]));
-  } else if (servoTarget[2] < 0) {
-    Serial.print("EP: Go Down\t");
-    elbowServo.write(180-(-1 * servoTarget[2]));
+  if ((servoTarget[2] > elbowPitchLowerLim) and(servoTarget[2] < elbowPitchUpperLim)) {
+    //Serial.print("EP: Good\t");
+  elbowServo.write(servoTarget[2]);
   }
-*/
-  
+
+
   //Forearm Roll
   //Serial.print(servoCurrent[3]);
   //Serial.print("\t");
@@ -632,64 +633,71 @@ void stinkyPID() {
   //Serial.print("\t");
   //Serial.print(servoTarget[3]);
   //Serial.print("\t");
-  if (servoTarget[3] > 0) {
-    //Serial.print("FR: Go Up\t");
-    forearmServo.write(servoTarget[3]);
-  } else if (servoTarget[3] < 0) {
-    //Serial.print("FR: Go Down\t");
-    forearmServo.write(servoTarget[3]);
+  if ((servoTarget[3] > forearmRollLowerLim) and(servoTarget[3] < forearmRollUpperLim)) {
+    //Serial.print("FR: Good\t");
+  forearmServo.write(servoTarget[3]);
   }
+
   /*
-       //Wrist Pitch
-     Serial.print(servoCurrent[4]);
-     Serial.print("\t");
-     Serial.print(dataPackGyro[4]);
-     Serial.print("\t");
-     Serial.print(servoTarget[4]);
-     Serial.print("\t");
-     if (servoTarget[4] > 0) {
-       Serial.print("WP: Go Up\t");
-     } else if (servoTarget[4] < 0) {
-       Serial.print("WP: Go Down\t");
-     }
+     //Wrist Pitch
+    Serial.print(servoCurrent[4]);
+    Serial.print("\t");
+    Serial.print(dataPackGyro[4]);
+    Serial.print("\t");
+    Serial.print(servoTarget[4]);
+    Serial.print("\t");
+  if ((servoTarget[4] > wristPitchLowerLim) and(servoTarget[4] < wristPitchUpperLim)) {
+    //Serial.print("WP: Good\t");
+  wristServo.write(servoTarget[4]);
+  }
 
 
     //Thumb
     if (dataPackHand[0] > 90) {
-     Serial.print("Thumb Flexed\t");
+    //Serial.print("Thumb Flexed\t");
+    thumbServo.write(thumbUpperLimit);
     } else if (dataPackHand[0] < 90) {
-     Serial.print("Thumb Soft\t");
+    //Serial.print("Thumb Soft\t");
+    thumbServo.write(thumbLowerLimit);
     }
 
     //Pointer
     if (dataPackHand[1] > 90) {
-     Serial.print("Pointer Flexed\t");
+    //Serial.print("Pointer Flexed\t");
+    pointerServo.write(pointerUpperLimit);
     } else if (dataPackHand[1] < 90) {
-     Serial.print("Pointer Soft\t");
+    //Serial.print("Pointer Soft\t");
+    pointerServo.write(pointerLowerLimit);
     }
 
     //Middle
     if (dataPackHand[2] > 90) {
-     Serial.print("Middle Flexed\t");
+    //Serial.print("Middle Flexed\t");
+    middleServo.write(middleUpperLimit);
     } else if (dataPackHand[2] < 90) {
-     Serial.print("MIddle Soft\t");
+    //Serial.print("MIddle Soft\t");
+    middleServo.write(middleLowerLimit);
     }
 
     //Ring
     if (dataPackHand[3] > 90) {
-     Serial.print("Ring Flexed\t");
+    //Serial.print("Ring Flexed\t");
+    ringServo.write(ringUpperLimit);
     } else if (dataPackHand[3] < 90) {
-     Serial.print("Ring Soft\t");
+    //Serial.print("Ring Soft\t");
+    ringServo.write(ringLowerLimit);
     }
 
     //Pinky
     if (dataPackHand[4] > 90) {
-     Serial.print("Pinky Flexed\t");
+    //Serial.print("Pinky Flexed\t");
+    pinkyServo.write(pinkyUpperLimit);
     } else if (dataPackHand[4] < 90) {
-     Serial.print("Pinky Soft\t");
+    //Serial.print("Pinky Soft\t");
+    pinkyServo.write(pinkyUpperLimit);
     }
   */
-  Serial.println();
+  // Serial.println();
 }
 
 

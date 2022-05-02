@@ -15,9 +15,6 @@
   https://arduino.stackexchange.com/questions/86031/adafruit-mpu-6050-and-adafruit-i2c-multiplexer
   https://forum.arduino.cc/t/integration-of-acceleration/158296/10
   https://forum.arduino.cc/t/measuring-time/96602/4
-
-
-
 */
 
 //=========================================Libraries
@@ -182,19 +179,19 @@ void loop() {
 //=========================================Flex Sensor Data
 void getFlexData() {
   tfFlex = analogRead(thumbPin);
-  tfFlex = map(tfFlex, 0, 1023, 0, 100);
+  //tfFlex = map(tfFlex, 0, 1023, 0, 100);
 
   pfFlex = analogRead(pointerFingerPin);
-  pfFlex = map(pfFlex, 0, 1023, 0, 100);
+  //pfFlex = map(pfFlex, 0, 1023, 0, 100);
 
   mfFlex = analogRead(middleFingerPin);
-  mfFlex = map(mfFlex, 0, 1023, 0, 100);
+  //mfFlex = map(mfFlex, 0, 1023, 0, 100);
 
   rfFlex = analogRead(ringFingerPin);
-  rfFlex = map(rfFlex, 0, 1023, 0, 100);
+  //rfFlex = map(rfFlex, 0, 1023, 0, 100);
 
   pifFlex = analogRead(pinkyFingerPin);
-  pifFlex = map(pifFlex, 0, 1023, 0, 100);
+  //pifFlex = map(pifFlex, 0, 1023, 0, 100);
 
   /*
     Serial.print("Finger Flex::: Thumb:\t");
@@ -339,8 +336,8 @@ void getGyroData() {
     //Looping data points
     dataToSend1[0] = yrc1;
     dataToSend1[1] = xrc1;
-    dataToSend1[3] = xrc2;
-    dataToSend1[4] = yrc2;
+    dataToSend1[3] = yrc2;
+    dataToSend1[4] = xrc2;
 
     prevTime = newTime;
     void  reset(void);
